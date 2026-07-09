@@ -94,6 +94,58 @@
         </div>
     </div>
 
+    <!-- Leaderboard Section -->
+    <div style="text-align: left; border-top: 1px solid var(--border-color); padding-top: 2rem; margin-top: 2rem;">
+        <h3 style="font-size: 1.35rem; margin-bottom: 1.25rem; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem;">
+            🏆 Game Leaderboard (Top 10)
+        </h3>
+        
+        <div class="glass-panel" style="padding: 0; overflow: hidden; background: rgba(255,255,255,0.01);">
+            {% if not leaderboard %}
+                <div style="text-align: center; padding: 2rem 1rem;">
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">No completions on this leaderboard yet.</p>
+                </div>
+            {% else %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02); color: var(--text-secondary);">
+                                <th style="padding: 0.75rem 1.25rem; font-weight: 700; width: 80px;">Rank</th>
+                                <th style="padding: 0.75rem 1.25rem; font-weight: 700;">Student Name</th>
+                                <th style="padding: 0.75rem 1.25rem; font-weight: 700; text-align: center;">Score</th>
+                                <th style="padding: 0.75rem 1.25rem; font-weight: 700; text-align: right;">Time Taken</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in leaderboard %}
+                                <tr style="border-bottom: 1px solid var(--border-color); {% if att.student.id == request.session.student_id %}background: rgba(16, 185, 129, 0.06);{% endif %}">
+                                    <td style="padding: 0.75rem 1.25rem; font-weight: 800;">
+                                        {% if forloop.counter == 1 %}
+                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; font-size: 0.7rem; font-weight: 800;">1st</span>
+                                        {% elif forloop.counter == 2 %}
+                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); color: #000; font-size: 0.7rem; font-weight: 800;">2nd</span>
+                                        {% elif forloop.counter == 3 %}
+                                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 0.7rem; font-weight: 800;">3rd</span>
+                                        {% else %}
+                                            <span style="color: var(--text-muted); font-family: monospace; padding-left: 4px;">#{{ forloop.counter }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 0.75rem 1.25rem; font-weight: 600; color: {% if att.student.id == request.session.student_id %}var(--accent-green){% else %}#fff{% endif %};">
+                                        {{ att.student.name }} {% if att.student.id == request.session.student_id %}(You){% endif %}
+                                    </td>
+                                    <td style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: var(--accent-yellow);">
+                                        {{ att.score }} <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">/ {{ att.max_score }}</span>
+                                    </td>
+                                    <td style="padding: 0.75rem 1.25rem; text-align: right; color: var(--accent-cyan); font-weight: 600; font-family: monospace;">{{ att.time_taken }}s</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Back Action -->
     <div style="margin-top: 3rem; display: flex; justify-content: center; gap: 1rem;">
         {% if trial_mode %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard: {{ game.title }} - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="student-leaderboard-container" style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Header with Back Link -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <div>
+            <a href="{% url 'student_view_games' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-green); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Play Games
+            </a>
+            <h1 style="font-size: 2.25rem; margin: 0; font-weight: 800; background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.75rem;">
+                🏆 {{ game.title }} Leaderboard
+            </h1>
+            <p style="color: var(--text-secondary); margin: 0.25rem 0 0 0; font-size: 0.95rem;">
+                Type: <strong>{{ game.get_game_type_display }}</strong> &bull; Subject: <strong>{{ game.subject.name }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Leaderboard Card -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-card);">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.015); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                🎯 Class Standings (Top 10)
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Tie-Breaker: Speed</span>
+        </div>
+
+        {% if not leaderboard %}
+            <div style="text-align: center; padding: 5rem 1rem;">
+                <span style="font-size: 3rem; display: block; margin-bottom: 0.75rem;">🥇</span>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">No attempts completed yet. Be the first to play!</p>
+                <div style="margin-top: 1.5rem;">
+                    <a href="{% url 'play_game' game.id %}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.6rem 1.5rem; font-weight: 700; text-decoration: none;">
+                        Play Now 🎮
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-secondary);">
+                            <th style="padding: 0.95rem 1.5rem; font-weight: 700; width: 90px;">Rank</th>
+                            <th style="padding: 0.95rem 1.5rem; font-weight: 700;">Student Name</th>
+                            <th style="padding: 0.95rem 1.5rem; font-weight: 700; text-align: center;">Score / Max</th>
+                            <th style="padding: 0.95rem 1.5rem; font-weight: 700; text-align: right;">Time Taken</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in leaderboard %}
+                            <tr class="leaderboard-row" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td style="padding: 0.95rem 1.5rem; font-weight: 800;">
+                                    {% if forloop.counter == 1 %}
+                                        <span class="medal gold" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; font-size: 0.75rem; font-weight: 800; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);">1st</span>
+                                    {% elif forloop.counter == 2 %}
+                                        <span class="medal silver" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); color: #000; font-size: 0.75rem; font-weight: 800; box-shadow: 0 0 10px rgba(203, 213, 225, 0.4);">2nd</span>
+                                    {% elif forloop.counter == 3 %}
+                                        <span class="medal bronze" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 0.75rem; font-weight: 800; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);">3rd</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-family: monospace; padding-left: 6px;">#{{ forloop.counter }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.95rem 1.5rem; font-weight: 600; color: #fff;">{{ attempt.student.name }}</td>
+                                <td style="padding: 0.95rem 1.5rem; text-align: center; font-weight: 700; color: var(--accent-yellow); font-size: 1rem;">
+                                    {{ attempt.score }} <span style="font-size: 0.78rem; font-weight: 500; color: var(--text-muted);">/ {{ attempt.max_score }}</span>
+                                </td>
+                                <td style="padding: 0.95rem 1.5rem; text-align: right; color: var(--accent-cyan); font-weight: 600; font-family: monospace; font-size: 0.95rem;">{{ attempt.time_taken }}s</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Actions Panel -->
+    <div style="margin-top: 2rem; display: flex; justify-content: center;">
+        <a href="{% url 'student_view_games' %}" class="btn btn-secondary" style="font-weight: 600; text-decoration: none; padding: 0.65rem 1.5rem;">
+            ← Return to Game List
+        </a>
+    </div>
+</div>
+
+<style>
+    .leaderboard-row:hover {
+        background: rgba(255, 255, 255, 0.025);
+    }
+</style>
+{% endblock %}

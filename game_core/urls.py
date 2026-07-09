@@ -70,6 +70,7 @@ urlpatterns = [
 
     # Redesigned Student Dashboard subsections
     path('student/games/', views.student_view_games, name='student_view_games'),
+    path('student/game/<int:game_id>/leaderboard/', views.student_game_leaderboard, name='student_game_leaderboard'),
     path('student/marks/', views.student_view_marks, name='student_view_marks'),
     path('student/notes/', views.student_view_notes, name='student_view_notes'),
     path('student/feedback/', views.student_send_feedback, name='student_send_feedback'),

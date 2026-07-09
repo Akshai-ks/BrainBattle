@@ -565,6 +565,30 @@ def generate_certificate(request, attempt_id):
     return render(request, 'game_core/certificate.html', {'attempt': attempt})
 
 @student_login_required
+def student_game_leaderboard(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    
+    teacher = User.objects.filter(username='teacher').first()
+    teacher_settings = None
+    if teacher:
+        teacher_settings, _ = TeacherSetting.objects.get_or_create(teacher=teacher)
+    else:
+        teacher_settings = TeacherSetting()
+        
+    if not teacher_settings.games_enabled:
+        messages.error(request, "Conceptual learning games are currently disabled by the teacher.")
+        return redirect('student_dashboard')
+        
+    leaderboard = get_game_leaderboard(game, limit=10)
+    
+    context = {
+        'game': game,
+        'leaderboard': leaderboard,
+    }
+    return render(request, 'game_core/student_game_leaderboard.html', context)
+
+
+@student_login_required
 def submit_feedback(request):
     if request.method == 'POST':
         message = request.POST.get('message')
@@ -1937,6 +1961,7 @@ def student_performance_analysis(request):
         exam2_scores.append(e2_map.get(sub, 0))
         
     return render(request, 'game_core/student_performance_analysis.html', {
+        'student': student,
         'my_attempts': my_attempts.order_by('-completed_at')[:10],
         'progress_labels': progress_labels,
         'progress_scores': progress_scores,
