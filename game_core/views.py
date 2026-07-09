@@ -822,7 +822,7 @@ def delete_student(request, student_id):
     name = student.name
     student.delete()
     messages.success(request, f"Student '{name}' deleted successfully.")
-    return redirect('manage_students')
+    return redirect('view_students')
 
 @login_required
 def unlock_student_replay(request, student_id, game_id):

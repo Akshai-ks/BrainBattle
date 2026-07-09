@@ -48,6 +48,7 @@ urlpatterns = [
     # Redesigned Dashboard View URLs
     path('teacher/games/', views.view_games, name='view_games'),
     path('teacher/students/', views.view_students, name='view_students'),
+    path('teacher/students/manage/', views.manage_students, name='manage_students'),
     path('teacher/students/create/', views.create_student, name='create_student'),
     path('teacher/students/<int:student_id>/edit/', views.edit_student, name='edit_student'),
     path('teacher/students/<int:student_id>/profile/', views.student_profile, name='student_profile'),
