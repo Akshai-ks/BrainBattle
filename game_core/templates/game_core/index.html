@@ -5,8 +5,8 @@
 {% block content %}
 <div class="smart-portal-wrapper fade-in">
     
-    <!-- Top Left Login Actions -->
-    <div class="top-left-actions">
+    <!-- Top Right Login Actions -->
+    <div class="top-right-actions">
         <a href="{% url 'student_login' %}" class="portal-pill-btn student-pill">
             <span class="dot student-dot"></span> Student Login
         </a>
@@ -20,19 +20,19 @@
         
         <!-- Elegant Education/Gaming Vector Illustration -->
         <div class="illustration-wrapper">
-            <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="url(#pastel-grad)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="url(#accent-grad)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
                 <defs>
-                    <linearGradient id="pastel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#3b82f6" />
-                        <stop offset="50%" stop-color="#8b5cf6" />
-                        <stop offset="100%" stop-color="#10b981" />
+                    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="var(--accent-cyan)" />
+                        <stop offset="50%" stop-color="var(--accent-purple)" />
+                        <stop offset="100%" stop-color="var(--accent-green)" />
                     </linearGradient>
                 </defs>
-                <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(139, 92, 246, 0.2)"/>
+                <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(255, 255, 255, 0.1)"/>
                 <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
                 <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
-                <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
+                <circle cx="12" cy="10" r="1.5" fill="url(#accent-grad)" />
+                <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#accent-grad)" stroke-width="1" />
             </svg>
         </div>
 
@@ -42,32 +42,11 @@
     </div>
 </div>
 
-<!-- Custom Page Overrides and Styling -->
+<!-- Custom Page Styling -->
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-
-    /* Global Page Overrides */
-    body {
-        background: linear-gradient(135deg, #f3f6ff 0%, #faf4ff 50%, #f0fdf4 100%) !important;
-        color: #1f2937 !important;
-        font-family: 'Poppins', 'Inter', sans-serif !important;
-        min-height: 100vh;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Hide standard dark navbar on index */
+    /* Hide standard navbar on index to display custom login layout */
     #main-navbar {
         display: none !important;
-    }
-
-    /* Footer adjustments for light mode */
-    footer {
-        background: transparent !important;
-        border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        color: #6b7280 !important;
-        margin-top: auto;
     }
 
     /* Main Container */
@@ -80,11 +59,11 @@
         padding: 6rem 2rem 2rem 2rem;
     }
 
-    /* Top Left Login Actions */
-    .top-left-actions {
+    /* Top Right Login Actions */
+    .top-right-actions {
         position: absolute;
         top: 2.5rem;
-        left: 2.5rem;
+        right: 2.5rem;
         display: flex;
         gap: 1rem;
         z-index: 100;
@@ -94,23 +73,22 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.65rem 1.35rem;
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 0.6rem 1.25rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 100px;
-        color: #374151;
-        font-size: 0.88rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .portal-pill-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(139, 92, 246, 0.08);
-        border-color: rgba(139, 92, 246, 0.2);
-        color: #111827;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
     }
 
     /* Status Indicator Dots */
@@ -122,26 +100,27 @@
     }
     
     .student-dot {
-        background: #10b981;
+        background: var(--accent-green);
         box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
     }
     
     .teacher-dot {
-        background: #3b82f6;
+        background: var(--accent-blue);
         box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
     }
 
     /* Centered Content Card */
     .portal-main-card {
-        max-width: 650px;
-        padding: 3.5rem 3rem;
+        max-width: 600px;
+        width: 100%;
+        padding: 3.5rem 2rem;
         text-align: center;
-        background: rgba(255, 255, 255, 0.35);
+        background: rgba(30, 41, 59, 0.15);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.45);
-        border-radius: 24px;
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.02);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
     }
 
     /* Floating Illustration wrapper */
@@ -159,7 +138,7 @@
     .main-title {
         font-size: 2.75rem;
         font-weight: 800;
-        color: #111827;
+        color: #fff;
         margin: 0 0 1rem 0;
         letter-spacing: -0.03em;
         line-height: 1.2;
@@ -167,7 +146,7 @@
 
     .main-subtitle {
         font-size: 1.15rem;
-        color: #4b5563;
+        color: var(--text-secondary);
         margin: 0;
         font-weight: 400;
         line-height: 1.5;
@@ -185,9 +164,10 @@
             padding: 8rem 1.5rem 2rem 1.5rem;
             align-items: flex-start;
         }
-        .top-left-actions {
+        .top-right-actions {
             top: 2rem;
             left: 50%;
+            right: auto;
             transform: translateX(-50%);
             width: calc(100% - 3rem);
             justify-content: center;
