@@ -1,75 +1,88 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Welcome to EduPlay - Conceptual Learning Portal{% endblock %}
+{% block title %}Welcome to EduPlay - Gamified Educational Portal{% endblock %}
 
 {% block content %}
-<div class="welcome-container" style="position: relative; max-width: 1200px; margin: 0 auto; padding: 5rem 1.5rem; text-align: center; overflow: hidden;">
+<div class="welcome-container" style="position: relative; max-width: 1200px; margin: 0 auto; padding: 4rem 1.5rem; text-align: center; overflow: visible;">
     
     <!-- Moving Ambient Glow Backgrounds -->
-    <div class="glow-bg cyan-glow" style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%); top: -10%; left: -5%; z-index: -1; filter: blur(100px); pointer-events: none; animation: float 15s infinite ease-in-out;"></div>
-    <div class="glow-bg green-glow" style="position: absolute; width: 550px; height: 550px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); top: 35%; right: -5%; z-index: -1; filter: blur(100px); pointer-events: none; animation: float 18s infinite ease-in-out reverse;"></div>
-    <div class="glow-bg purple-glow" style="position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%); bottom: -10%; left: 25%; z-index: -1; filter: blur(120px); pointer-events: none; animation: float 22s infinite ease-in-out;"></div>
+    <div class="glow-bg cyan-glow" style="position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%); top: -10%; left: -10%; z-index: -1; filter: blur(120px); pointer-events: none; animation: float 15s infinite ease-in-out;"></div>
+    <div class="glow-bg green-glow" style="position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); top: 40%; right: -10%; z-index: -1; filter: blur(120px); pointer-events: none; animation: float 18s infinite ease-in-out reverse;"></div>
+    <div class="glow-bg purple-glow" style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%); bottom: -5%; left: 15%; z-index: -1; filter: blur(140px); pointer-events: none; animation: float 22s infinite ease-in-out;"></div>
 
-    <!-- Hero Header -->
-    <div class="hero-welcome-section fade-in" style="padding: 3rem 0; margin-bottom: 4.5rem;">
-        <div style="display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2); padding: 0.5rem 1.25rem; border-radius: 100px; color: var(--accent-cyan); font-size: 0.82rem; font-weight: 700; margin-bottom: 2.25rem; letter-spacing: 0.05em; text-transform: uppercase;">
-            <span class="pulse-indicator" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite ease-in-out;"></span>
-            Conceptual Gamified Learning
-        </div>
+    <!-- Hero Header split layout (Text + Visual mockup) -->
+    <div class="hero-split-grid" style="display: grid; grid-template-columns: 1fr; gap: 3rem; align-items: center; text-align: left; padding: 3rem 0; margin-bottom: 5.5rem;" class="grid-2col-lg">
         
-        <h1 style="font-size: 4.5rem; font-weight: 850; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -0.04em; color: #fff;">
-            Reimagining Education through <br>
-            <span style="background: linear-gradient(135deg, var(--accent-cyan) 0%, #22d3ee 30%, var(--accent-green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Interactive Play</span>
-        </h1>
-        
-        <p style="font-size: 1.35rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem auto; line-height: 1.65; font-weight: 400;">
-            Welcome to <strong>EduPlay</strong>—a state-of-the-art workspace for active learning. Play concept games, access study note resources, and track performance details.
-        </p>
+        <!-- Hero Text Column -->
+        <div class="hero-text-col fade-in">
+            <div style="display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(6, 182, 212, 0.04); border: 1px solid rgba(6, 182, 212, 0.2); padding: 0.5rem 1.25rem; border-radius: 100px; color: var(--accent-cyan); font-size: 0.82rem; font-weight: 700; margin-bottom: 2rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                <span class="pulse-indicator" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite ease-in-out;"></span>
+                Gamified Study Space
+            </div>
+            
+            <h1 style="font-size: 4.25rem; font-weight: 850; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -0.04em; color: #fff; font-family: var(--font-heading);">
+                Master Your Syllabus <br>Through <span style="background: linear-gradient(135deg, var(--accent-cyan) 0%, #22d3ee 40%, var(--accent-green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Gamified Play</span>
+            </h1>
+            
+            <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2.75rem; line-height: 1.65; font-weight: 400; max-width: 580px;">
+                EduPlay translates traditional classroom worksheets into engaging, competitive, and interactive learning games. Take practice runs, check class standings, and reference slides easily.
+            </p>
 
-        <!-- CTA Buttons -->
-        <div style="display: flex; justify-content: center; gap: 1.25rem; flex-wrap: wrap; align-items: center;">
-            {% if request.user.is_authenticated %}
-                <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.5rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;">
-                    Go to Teacher Hub 👨‍🏫
-                </a>
-            {% elif request.session.student_id %}
-                <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.5rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;">
-                    Go to Student Dashboard 🎓
-                </a>
-            {% else %}
-                <a href="{% url 'student_login' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.5rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-green), #10b981); text-decoration: none; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
-                    Start Learning (Student) ▶
-                </a>
-                <a href="{% url 'teacher_login' %}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 1rem 2.5rem; border-radius: var(--radius-sm); font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255,255,255,0.02); text-decoration: none; transition: all 0.25s ease;">
-                    Teacher Control Hub 👨‍🏫
-                </a>
-            {% endif %}
+            <!-- CTA Buttons -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.25rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;">
+                        Go to Teacher Hub 👨‍🏫
+                    </a>
+                {% elif request.session.student_id %}
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.25rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;">
+                        Go to Student Dashboard 🎓
+                    </a>
+                {% else %}
+                    <a href="{% url 'student_login' %}" class="btn btn-primary btn-lg-glow" style="font-size: 1.05rem; padding: 1rem 2.25rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-green), #10b981); text-decoration: none; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
+                        Start Learning (Student) ▶
+                    </a>
+                    <a href="{% url 'teacher_login' %}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 1rem 2.25rem; border-radius: var(--radius-sm); font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255,255,255,0.02); text-decoration: none; transition: all 0.25s ease;">
+                        Teacher Access ➔
+                    </a>
+                {% endif %}
+            </div>
         </div>
+
+        <!-- Hero Graphic Column (Generated Image Preview) -->
+        <div class="hero-visual-col fade-in" style="display: flex; justify-content: center; position: relative;">
+            <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 60%); top: 10%; left: 10%; z-index: -1; filter: blur(50px); pointer-events: none;"></div>
+            <div class="mockup-frame" style="border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius-md); padding: 0.75rem; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.15); transition: transform 0.3s ease; animation: float 10s infinite ease-in-out;">
+                <img src="{% static 'images/dashboard_preview.png' %}" alt="EduPlay Dashboard Preview" style="width: 100%; max-width: 480px; height: auto; border-radius: calc(var(--radius-md) - 4px); display: block; border: 1px solid rgba(255,255,255,0.03);">
+            </div>
+        </div>
+
     </div>
 
     <!-- Quick Stats SaaS Banner -->
-    <div class="glass-panel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; padding: 2rem; margin-bottom: 5.5rem; background: rgba(30, 41, 59, 0.2); border-color: rgba(255,255,255,0.05); box-shadow: var(--shadow-card);">
+    <div class="glass-panel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; padding: 2rem; margin-bottom: 6rem; background: rgba(30, 41, 59, 0.15); border-color: rgba(255,255,255,0.05); box-shadow: var(--shadow-card);">
         <div style="text-align: center;">
-            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-heading);">100%</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Curriculum Aligned</div>
+            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-cyan); font-family: var(--font-heading); line-height: 1;">100%</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.45rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Concept Aligned</div>
         </div>
-        <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05);" class="stats-border">
-            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-green); font-family: var(--font-heading);">Real-Time</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Class Leaderboards</div>
+        <div class="stats-divider" style="text-align: center; border-left: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-green); font-family: var(--font-heading); line-height: 1;">Interactive</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.45rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Real-Time Standings</div>
         </div>
         <div style="text-align: center;">
-            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-purple); font-family: var(--font-heading);">Instant</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Academic Analytics</div>
+            <div style="font-size: 2.25rem; font-weight: 800; color: var(--accent-purple); font-family: var(--font-heading); line-height: 1;">Immediate</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.45rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Academic Feedback</div>
         </div>
     </div>
 
     <!-- Platform Highlights & Features Section -->
-    <div class="slide-up" style="margin-bottom: 6rem; position: relative;">
+    <div class="slide-up" style="margin-bottom: 6.5rem; position: relative;">
         <h2 style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 1rem; text-align: center; letter-spacing: -0.02em;">
-            Interactive Features for Academic Excellence
+            Designed for Active Concept Mastery
         </h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem auto; font-size: 1.05rem;">
-            EduPlay bridges the gap between study guides and interactive practice, making revision engaging and metrics-driven.
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem auto; font-size: 1.05rem; line-height: 1.55;">
+            EduPlay integrates concept-testing game challenges with curriculum tracking logs to deliver an unified study platform.
         </p>
         
         <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
@@ -86,9 +99,9 @@
                         <rect x="2" y="6" width="20" height="12" rx="3"/>
                     </svg>
                 </div>
-                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Conceptual Games</h3>
+                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Conceptual Gaming</h3>
                 <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
-                    Solidify learning objectives by playing interactive word puzzles, multiple-choice quizzes, fill in the blanks, and term association matches.
+                    Strengthen subject mastery by engaging in customized word puzzles, multiple-choice quizzes, fill in the blanks, and term association matches.
                 </p>
             </div>
 
@@ -102,7 +115,7 @@
                         <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
                     </svg>
                 </div>
-                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Performance Insights</h3>
+                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Performance Analysis</h3>
                 <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
                     Review dynamic progress charts, compare exam percentages across subjects, and download certificates of completion for perfect scores.
                 </p>
@@ -120,7 +133,7 @@
                         <path d="M12 2a6 6 0 0 1 6 6v3.58a6 6 0 0 1-3.72 5.54l-.28.11a2 2 0 0 1-1.6 0l-.28-.11A6 6 0 0 1 6 11.58V8a6 6 0 0 1 6-6z"/>
                     </svg>
                 </div>
-                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Live Leaderboards</h3>
+                <h3 style="font-size: 1.45rem; color: #fff; margin-bottom: 0.85rem; font-weight: 700;">Live Class Rankings</h3>
                 <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
                     Compete with peers under smart ranking rules. Climb the top spots sorted strictly by highest scores and fastest completion times.
                 </p>
@@ -130,48 +143,120 @@
     </div>
 
     <!-- How It Works Timeline -->
-    <div class="timeline-section slide-up" style="margin-bottom: 5rem; border-top: 1px solid var(--border-color); padding-top: 5rem;">
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 1.25rem; text-align: center;">
-            Simple & Structured Concept Learning
+    <div class="timeline-section slide-up" style="margin-bottom: 6rem; border-top: 1px solid var(--border-color); padding-top: 5rem;">
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 1.25rem; text-align: center; letter-spacing: -0.02em;">
+            Structured Learning Pathway
         </h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem auto; font-size: 1rem;">
-            EduPlay establishes a simple, structured pathway for learning new topics and checking grades.
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 4.5rem auto; font-size: 1.02rem; line-height: 1.5;">
+            EduPlay maps a clear course pathway, enabling student reviews and automated dashboards effortlessly.
         </p>
 
         <div style="display: flex; gap: 2rem; justify-content: space-between; flex-wrap: wrap; text-align: left; max-width: 1000px; margin: 0 auto;">
             <!-- Step 1 -->
-            <div style="flex: 1; min-width: 250px; position: relative;">
-                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(6, 182, 212, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem;">01</div>
-                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Read uploaded Notes</h4>
+            <div style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(6, 182, 212, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem; line-height: 1;">01</div>
+                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Review Notes & Syllabus</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55;">
-                    Log into the student panel and download subject files or worksheets provided by your teacher.
+                    Students download course handouts and lecture notes uploaded by teachers to build foundational clarity.
                 </p>
             </div>
             <!-- Step 2 -->
-            <div style="flex: 1; min-width: 250px; position: relative;">
-                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(16, 185, 129, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem;">02</div>
-                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Complete Games</h4>
+            <div style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(16, 185, 129, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem; line-height: 1;">02</div>
+                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Practice Gamified Quizzes</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55;">
-                    Play word puzzles, MCQs, or matching matches. Your score and completion time are tracked in real-time.
+                    Solve conceptual word puzzle, MCQ, and match challenges. Time and precision are tracked instantly.
                 </p>
             </div>
             <!-- Step 3 -->
-            <div style="flex: 1; min-width: 250px; position: relative;">
-                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(139, 92, 246, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem;">03</div>
-                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Review Ranks & Progress</h4>
+            <div style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2.5rem; font-weight: 850; color: rgba(139, 92, 246, 0.25); font-family: var(--font-heading); margin-bottom: 0.5rem; line-height: 1;">03</div>
+                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700;">Analyze Ranks & Gain Certs</h4>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55;">
-                    Inspect instant solution sheets, download performance certificates, and check your rank standings.
+                    Verify correct responses, check standings on classrooms leaderboards, and print out achievements.
                 </p>
             </div>
         </div>
     </div>
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section slide-up" style="margin-bottom: 6.5rem; border-top: 1px solid var(--border-color); padding-top: 5rem;">
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 1rem; text-align: center; letter-spacing: -0.02em;">
+            Loved by Teachers and Students
+        </h2>
+        <p style="color: var(--text-secondary); max-width: 550px; margin: 0 auto 4rem auto; font-size: 1.02rem;">
+            EduPlay is transforming conceptual classroom engagement day-by-day.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto; text-align: left;">
+            <!-- Review 1 -->
+            <div class="glass-panel" style="padding: 2rem; background: rgba(30, 41, 59, 0.1); border-color: rgba(255,255,255,0.04);">
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; font-style: italic; margin-bottom: 1.5rem;">
+                    "EduPlay has solved my engagement issue. Students study note slides eagerly just to perform better in matching challenges and rank top 3!"
+                </p>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.9rem;">
+                        MJ
+                    </div>
+                    <div>
+                        <strong style="color: #fff; font-size: 0.92rem; display: block;">Mrs. Jane Mitchell</strong>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);">High School Educator</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 2 -->
+            <div class="glass-panel" style="padding: 2rem; background: rgba(30, 41, 59, 0.1); border-color: rgba(255,255,255,0.04);">
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; font-style: italic; margin-bottom: 1.5rem;">
+                    "The instant explanations help me learn from my mistakes immediately. Also, getting perfect scores is so rewarding with printable certificates!"
+                </p>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-green), #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.9rem;">
+                        DK
+                    </div>
+                    <div>
+                        <strong style="color: #fff; font-size: 0.92rem; display: block;">David K.</strong>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);">Grade 10 Student</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Call to Action -->
+    <div class="glass-panel slide-up" style="max-width: 900px; margin: 0 auto 3rem auto; padding: 3.5rem 2rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%); border-color: rgba(6, 182, 212, 0.2); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);">
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 1rem; font-family: var(--font-heading); letter-spacing: -0.02em;">
+            Ready to Play and Learn?
+        </h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 2.5rem auto; font-size: 1.1rem; line-height: 1.6;">
+            Log into your dashboard, review notes uploaded by your teacher, and claim your spot on the top 3 leaderboard ranks today.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            {% if not request.session.student_id and not request.user.is_authenticated %}
+                <a href="{% url 'student_login' %}" class="btn btn-primary" style="padding: 0.85rem 2.25rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-green), #10b981); text-decoration: none; border-radius: var(--radius-sm);">
+                    Student Login ▶
+                </a>
+                <a href="{% url 'teacher_login' %}" class="btn btn-secondary" style="padding: 0.85rem 2.25rem; font-weight: 700; border-color: rgba(255,255,255,0.15); text-decoration: none; border-radius: var(--radius-sm);">
+                    Teacher Login ➔
+                </a>
+            {% elif request.user.is_authenticated %}
+                <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary" style="padding: 0.85rem 2.25rem; font-weight: 700; text-decoration: none; border-radius: var(--radius-sm);">
+                    Open Teacher Hub
+                </a>
+            {% else %}
+                <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="padding: 0.85rem 2.25rem; font-weight: 700; text-decoration: none; border-radius: var(--radius-sm);">
+                    Open Student Dashboard
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 
 <style>
-    /* Premium Hover Transformations & Glow Details */
     @keyframes float {
         0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-15px) scale(1.05); }
+        50% { transform: translateY(-15px) scale(1.03); }
     }
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px var(--accent-green); }
@@ -226,17 +311,24 @@
         border-color: rgba(6, 182, 212, 0.25) !important;
         color: #fff !important;
     }
+
+    @media (min-width: 1024px) {
+        .hero-split-grid {
+            grid-template-columns: 1.2fr 0.8fr !important;
+        }
+    }
     
     @media (max-width: 768px) {
         h1 {
             font-size: 2.75rem !important;
         }
-        .stats-border {
+        .stats-divider {
             border-left: none !important;
             border-right: none !important;
             border-top: 1px solid rgba(255,255,255,0.05);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 1.5rem 0;
+            margin: 1rem 0;
         }
     }
 </style>
