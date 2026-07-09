@@ -1,143 +1,86 @@
 {% extends 'base.html' %}
 
-{% block title %}EduPlay - Interactive Learning Portal{% endblock %}
+{% block title %}Welcome to EduPlay - Conceptual Learning Portal{% endblock %}
 
 {% block content %}
-<div class="welcome-container" style="max-width: 1000px; margin: 0 auto; padding: 5rem 1.5rem; text-align: center;">
+<div class="welcome-container" style="max-width: 900px; margin: 0 auto; padding: 6rem 1.5rem; text-align: center;">
 
-    <!-- Minimalist Hero Header -->
-    <div class="hero-section fade-in" style="padding: 2rem 0; margin-bottom: 5rem;">
-        <!-- Small upper category tag -->
-        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.15em; display: inline-block; margin-bottom: 1.25rem;">
-            Interactive Concept Portal
+    <!-- Minimalist Welcome Header -->
+    <div class="hero-welcome-section fade-in" style="margin-bottom: 4rem;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.15em; display: inline-block; margin-bottom: 1.25rem;">
+            EduPlay Workspace
         </span>
-        
-        <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; color: #fff; letter-spacing: -0.02em; font-family: var(--font-heading);">
-            Conceptual learning, <br>
-            made simple.
+        <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.25rem; color: #fff; letter-spacing: -0.02em; font-family: var(--font-heading);">
+            Interactive Conceptual Learning
         </h1>
-        
-        <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 640px; margin: 0 auto 3rem auto; line-height: 1.65; font-weight: 400;">
-            EduPlay is a clean, gamified educational platform that reinforces core syllabus topics. Study uploaded notes, complete conceptual games, and view live standings.
+        <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; line-height: 1.6; font-weight: 400;">
+            Select your portal below to log in and access learning challenges, syllabus notes, and class standings.
         </p>
+    </div>
 
-        <!-- CTA Action Buttons -->
-        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-            {% if request.user.is_authenticated %}
-                <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none;">
-                    Open Teacher Hub 👨‍🏫
-                </a>
-            {% elif request.session.student_id %}
-                <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none;">
-                    Open Student Dashboard 🎓
-                </a>
-            {% else %}
-                <a href="{% url 'student_login' %}" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none; background: linear-gradient(135deg, var(--accent-green), #10b981);">
+    <!-- Clean Portal Selection Grid -->
+    <div class="portal-grid slide-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 2rem; max-width: 800px; margin: 0 auto;">
+        
+        <!-- Student Portal Card -->
+        <div class="portal-card student-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); background: rgba(30, 41, 59, 0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius-sm); padding: 2.5rem 2rem; text-align: left; transition: all 0.25s ease; min-height: 280px;">
+            <div>
+                <!-- Cap Icon -->
+                <div style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--accent-green);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.35rem; margin-bottom: 0.5rem; color: #fff; font-weight: 700;">Student Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 2rem;">
+                    Play word puzzles, MCQs, or matching matches, and retrieve notes uploaded by your teacher.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'student_login' %}" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.8rem; font-size: 0.92rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-green), #10b981); color: #fff; text-decoration: none;">
                     Student Login ▶
                 </a>
-                <a href="{% url 'teacher_login' %}" class="btn btn-secondary" style="font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none; border-color: rgba(255,255,255,0.12); background: transparent;">
+            </div>
+        </div>
+
+        <!-- Teacher Portal Card -->
+        <div class="portal-card teacher-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); background: rgba(30, 41, 59, 0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius-sm); padding: 2.5rem 2rem; text-align: left; transition: all 0.25s ease; min-height: 280px;">
+            <div>
+                <!-- Monitor Board Icon -->
+                <div style="width: 44px; height: 44px; background: rgba(6, 182, 212, 0.06); border: 1px solid rgba(6, 182, 212, 0.15); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--accent-cyan);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.35rem; margin-bottom: 0.5rem; color: #fff; font-weight: 700;">Teacher Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 2rem;">
+                    Manage student entries, design interactive tasks, check leaderboards, and upload files.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'teacher_login' %}" class="btn btn-accent" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.8rem; font-size: 0.92rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-cyan), #3b82f6); color: #fff; text-decoration: none;">
                     Teacher Portal ➔
                 </a>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Minimalist Features Row (3 columns) -->
-    <div class="features-section slide-up" style="margin-bottom: 5.5rem; border-top: 1px solid var(--border-color); padding-top: 4.5rem;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; text-align: left;">
-            
-            <!-- Feature 1: Play Games -->
-            <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: rgba(30, 41, 59, 0.15); transition: border-color 0.2s ease;">
-                <div style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent-green);">🎮</div>
-                <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Play Games</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
-                    Reinforce subject retention by playing interactive word puzzles, multiple-choice questions, matching matches, and fill in the blanks.
-                </p>
-            </div>
-
-            <!-- Feature 2: View Marks -->
-            <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: rgba(30, 41, 59, 0.15); transition: border-color 0.2s ease;">
-                <div style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent-cyan);">📊</div>
-                <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Check Standing</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
-                    Track game progress scores instantly. Compare exam statistics across semesters and print accomplishment certificates.
-                </p>
-            </div>
-
-            <!-- Feature 3: Reference Notes -->
-            <div class="feature-card" style="padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: rgba(30, 41, 59, 0.15); transition: border-color 0.2s ease;">
-                <div style="font-size: 1.5rem; margin-bottom: 1rem; color: #60a5fa;">📥</div>
-                <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Learn with Notes</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
-                    Gain fast access to study handouts, lecture reference sheets, and slides uploaded by the teacher before playing.
-                </p>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Simple Timeline Steps -->
-    <div class="timeline-section slide-up" style="margin-bottom: 5.5rem; border-top: 1px solid var(--border-color); padding-top: 4.5rem; text-align: left;">
-        <h2 style="font-size: 1.75rem; color: #fff; margin-bottom: 3rem; text-align: center; font-weight: 700;">Curriculum Workflow</h2>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; max-width: 900px; margin: 0 auto;">
-            <div>
-                <strong style="font-size: 0.85rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">01. Notes</strong>
-                <h4 style="font-size: 1.05rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Read Material</h4>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Review note slide documents uploaded to the dashboard.</p>
-            </div>
-            <div>
-                <strong style="font-size: 0.85rem; color: var(--accent-green); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">02. Play</strong>
-                <h4 style="font-size: 1.05rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Complete Games</h4>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Reinforce conceptual logic by finishing gamified quizzes.</p>
-            </div>
-            <div>
-                <strong style="font-size: 0.85rem; color: var(--accent-purple); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">03. Rank</strong>
-                <h4 style="font-size: 1.05rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600;">Track Ranks</h4>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Check live classroom leaderboards to trace standing improvements.</p>
             </div>
         </div>
     </div>
-
-    <!-- Humble Call To Action Box -->
-    <div class="glass-panel slide-up" style="max-width: 800px; margin: 0 auto 2.5rem auto; padding: 3rem 2rem; background: rgba(30, 41, 59, 0.15); border-color: var(--border-color); text-align: center;">
-        <h3 style="font-size: 1.5rem; color: #fff; margin-bottom: 0.75rem; font-weight: 700;">Ready to get started?</h3>
-        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.5;">
-            Log in to study, compete, and track your gamified educational benchmarks.
-        </p>
-        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-            {% if not request.session.student_id and not request.user.is_authenticated %}
-                <a href="{% url 'student_login' %}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); font-size: 0.9rem;">
-                    Student Portal ▶
-                </a>
-                <a href="{% url 'teacher_login' %}" class="btn btn-secondary" style="padding: 0.75rem 1.75rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); font-size: 0.9rem; border-color: rgba(255,255,255,0.1); background: transparent;">
-                    Teacher Portal ➔
-                </a>
-            {% elif request.user.is_authenticated %}
-                <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); font-size: 0.9rem;">
-                    Go to Teacher Hub
-                </a>
-            {% else %}
-                <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); font-size: 0.9rem;">
-                    Go to Student Dashboard
-                </a>
-            {% endif %}
-        </div>
-    </div>
-
 </div>
 
 <style>
-    .feature-card {
-        transition: border-color 0.25s ease, transform 0.25s ease;
+    .portal-card {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease !important;
     }
-    .feature-card:hover {
-        border-color: rgba(6, 182, 212, 0.3) !important;
-        transform: translateY(-2px);
+    .portal-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
     }
-    .btn-secondary:hover {
-        border-color: rgba(255,255,255,0.25) !important;
-        background: rgba(255,255,255,0.03) !important;
+    .student-card:hover {
+        border-color: rgba(16, 185, 129, 0.35) !important;
+    }
+    .teacher-card:hover {
+        border-color: rgba(6, 182, 212, 0.35) !important;
     }
 </style>
 {% endblock %}
