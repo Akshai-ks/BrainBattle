@@ -20,19 +20,19 @@
         
         <!-- Elegant Education/Gaming Vector Illustration -->
         <div class="illustration-wrapper">
-            <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="url(#accent-grad)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="url(#pastel-grad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <defs>
-                    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="var(--accent-cyan)" />
-                        <stop offset="50%" stop-color="var(--accent-purple)" />
-                        <stop offset="100%" stop-color="var(--accent-green)" />
+                    <linearGradient id="pastel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2563eb" />
+                        <stop offset="50%" stop-color="#7c3aed" />
+                        <stop offset="100%" stop-color="#059669" />
                     </linearGradient>
                 </defs>
-                <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(255, 255, 255, 0.1)"/>
+                <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(124, 58, 237, 0.25)"/>
                 <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
                 <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                <circle cx="12" cy="10" r="1.5" fill="url(#accent-grad)" />
-                <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#accent-grad)" stroke-width="1" />
+                <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
+                <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
             </svg>
         </div>
 
@@ -42,11 +42,32 @@
     </div>
 </div>
 
-<!-- Custom Page Styling -->
+<!-- Custom Page Overrides and Styling -->
 <style>
-    /* Hide standard navbar on index to display custom login layout */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* Soft colorful pastel gradient background (visible blue/purple/indigo tones, not dark, not white) */
+    body {
+        background: linear-gradient(135deg, #dbeafe 0%, #e9d5ff 50%, #c7d2fe 100%) !important;
+        color: #1e1b4b !important; /* Dark indigo text for contrast */
+        font-family: 'Poppins', 'Inter', sans-serif !important;
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Hide standard dark navbar on index */
     #main-navbar {
         display: none !important;
+    }
+
+    /* Footer adjustments for light mode */
+    footer {
+        background: transparent !important;
+        border-top: 1px solid rgba(30, 27, 75, 0.08) !important;
+        color: #4b5563 !important;
+        margin-top: auto;
     }
 
     /* Main Container */
@@ -73,22 +94,23 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.6rem 1.25rem;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0.65rem 1.35rem;
+        background: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.8);
         border-radius: 100px;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
+        color: #1e1b4b;
+        font-size: 0.88rem;
         font-weight: 600;
         text-decoration: none;
+        box-shadow: 0 4px 12px rgba(30, 27, 75, 0.04);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .portal-pill-btn:hover {
         transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.2);
-        color: #fff;
+        box-shadow: 0 6px 16px rgba(30, 27, 75, 0.08), 0 0 0 3px rgba(124, 58, 237, 0.1);
+        border-color: rgba(124, 58, 237, 0.25);
+        color: #111827;
     }
 
     /* Status Indicator Dots */
@@ -100,13 +122,13 @@
     }
     
     .student-dot {
-        background: var(--accent-green);
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        background: #059669;
+        box-shadow: 0 0 8px rgba(5, 150, 105, 0.4);
     }
     
     .teacher-dot {
-        background: var(--accent-blue);
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        background: #2563eb;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
     }
 
     /* Centered Content Card */
@@ -115,12 +137,12 @@
         width: 100%;
         padding: 3.5rem 2rem;
         text-align: center;
-        background: rgba(30, 41, 59, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-card);
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.04);
     }
 
     /* Floating Illustration wrapper */
@@ -138,7 +160,7 @@
     .main-title {
         font-size: 2.75rem;
         font-weight: 800;
-        color: #fff;
+        color: #1e1b4b;
         margin: 0 0 1rem 0;
         letter-spacing: -0.03em;
         line-height: 1.2;
@@ -146,9 +168,9 @@
 
     .main-subtitle {
         font-size: 1.15rem;
-        color: var(--text-secondary);
+        color: #4f46e5;
         margin: 0;
-        font-weight: 400;
+        font-weight: 500;
         line-height: 1.5;
     }
 
