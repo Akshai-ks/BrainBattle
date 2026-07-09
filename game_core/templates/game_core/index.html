@@ -4,54 +4,50 @@
 
 {% block content %}
 <div class="smart-portal-wrapper fade-in">
-    <!-- Animated Soft Background Blobs -->
-    <div class="blur-blob blob-1"></div>
-    <div class="blur-blob blob-2"></div>
-    <div class="blur-blob blob-3"></div>
+    <!-- Subtle Background Glows -->
+    <div class="subtle-glow glow-left"></div>
+    <div class="subtle-glow glow-right"></div>
 
-    <!-- Top Right Login Actions -->
-    <div class="top-right-actions">
-        <a href="{% url 'student_login' %}" class="portal-pill-btn student-pill">
-            <span class="dot student-dot"></span> Student Login
-        </a>
-        <a href="{% url 'teacher_login' %}" class="portal-pill-btn teacher-pill">
-            <span class="dot teacher-dot"></span> Teacher Login
+    <!-- Minimal Custom Header/Navbar -->
+    <div class="minimal-header">
+        <!-- Top Left Actions -->
+        <div class="top-left-actions">
+            <a href="{% url 'student_login' %}" class="portal-pill-btn student-pill">
+                <span class="dot student-dot"></span> Student Login
+            </a>
+            <a href="{% url 'teacher_login' %}" class="portal-pill-btn teacher-pill">
+                <span class="dot teacher-dot"></span> Teacher Login
+            </a>
+        </div>
+        <!-- Top Right Logo -->
+        <a href="{% url 'index' %}" class="minimal-logo">
+            <span>🎮</span> EduPlay
         </a>
     </div>
 
-    <!-- Main Centered Content Card -->
+    <!-- Main Centered Portal Card -->
     <div class="portal-main-card">
-        
-        <!-- Elegant Education/Gaming Vector Illustration -->
-        <div class="illustration-wrapper">
-            <div class="icon-glow-ring">
-                <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="url(#pastel-grad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <defs>
-                        <linearGradient id="pastel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#4f46e5" />
-                            <stop offset="50%" stop-color="#9333ea" />
-                            <stop offset="100%" stop-color="#0891b2" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(147, 51, 234, 0.2)"/>
-                    <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
-                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                    <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
-                    <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
-                </svg>
-            </div>
-        </div>
-
-        <!-- Heading & Subtitle -->
         <h1 class="main-title">Smart Learning Platform</h1>
         <p class="main-subtitle">Learn, Compete, and Track Your Progress</p>
 
-        <!-- Visual Badges of Game Modes -->
-        <div class="features-preview-row">
-            <span class="preview-badge word-badge">Word Puzzles 🧩</span>
-            <span class="preview-badge mcq-badge">MCQs 📝</span>
-            <span class="preview-badge fill-badge">Fill Blanks ✏️</span>
-            <span class="preview-badge match-badge">Matches 🔗</span>
+        <!-- Center Login Options for Focus -->
+        <div class="center-actions-group">
+            <a href="{% url 'student_login' %}" class="large-portal-btn student-btn">
+                <div class="btn-icon">🎓</div>
+                <div class="btn-text">
+                    <span class="btn-label">Student Portal</span>
+                    <span class="btn-desc">Play games & view grades</span>
+                </div>
+                <span class="btn-arrow">▶</span>
+            </a>
+            <a href="{% url 'teacher_login' %}" class="large-portal-btn teacher-btn">
+                <div class="btn-icon">👨‍🏫</div>
+                <div class="btn-text">
+                    <span class="btn-label">Teacher Portal</span>
+                    <span class="btn-desc">Manage games & track details</span>
+                </div>
+                <span class="btn-arrow">➔</span>
+            </a>
         </div>
     </div>
 </div>
@@ -60,10 +56,10 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* Soft colorful pastel gradient background (visible blue/purple/indigo tones, not dark, not white) */
+    /* Page-specific dark blue theme overrides */
     body {
-        background: linear-gradient(135deg, #eef2f3 0%, #f5f3ff 50%, #e0f2fe 100%) !important;
-        color: #1e1b4b !important;
+        background: linear-gradient(135deg, #0b0f19 0%, #0f172a 50%, #1e1b4b 100%) !important;
+        color: var(--text-primary) !important;
         font-family: 'Poppins', 'Inter', sans-serif !important;
         min-height: 100vh;
         margin: 0;
@@ -73,224 +69,271 @@
         overflow-x: hidden;
     }
 
-    /* Hide standard dark navbar on index */
+    /* Hide standard navigation bar */
     #main-navbar {
         display: none !important;
     }
 
-    /* Footer adjustments for light mode */
+    /* Footer overrides for light transparency */
     footer {
         background: transparent !important;
-        border-top: 1px solid rgba(30, 27, 75, 0.06) !important;
-        color: #4b5563 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-muted) !important;
         margin-top: auto;
         z-index: 10;
     }
 
-    /* Main Container */
+    /* Outer Wrapper */
     .smart-portal-wrapper {
         position: relative;
         flex: 1;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 7rem 2rem 3rem 2rem;
+        padding: 8rem 2rem 4rem 2rem;
         z-index: 5;
     }
 
-    /* Top Right Login Actions */
-    .top-right-actions {
+    /* Minimal Custom Header / Navbar */
+    .minimal-header {
         position: absolute;
-        top: 2.5rem;
-        right: 2.5rem;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 2.5rem;
         display: flex;
-        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
         z-index: 100;
+    }
+
+    /* Top Left Pill Buttons */
+    .top-left-actions {
+        display: flex;
+        gap: 0.75rem;
     }
 
     .portal-pill-btn {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.65rem 1.35rem;
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 0.55rem 1.15rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 100px;
-        color: #374151;
-        font-size: 0.88rem;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
         font-weight: 600;
         text-decoration: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .portal-pill-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.08);
-        border-color: rgba(79, 70, 229, 0.25);
-        color: #111827;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        color: #fff;
     }
 
-    /* Status Indicator Dots */
+    /* Indicator Dots */
     .dot {
         display: inline-block;
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
     }
     
     .student-dot {
-        background: #10b981;
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        background: var(--accent-green);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
     }
     
     .teacher-dot {
-        background: #3b82f6;
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        background: var(--accent-blue);
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
     }
 
-    /* Centered Content Card */
+    /* Top Right Brand Logo */
+    .minimal-logo {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+    }
+
+    /* Centered Dashboard Card */
     .portal-main-card {
         max-width: 650px;
         width: 100%;
-        padding: 4rem 3rem;
         text-align: center;
-        background: rgba(255, 255, 255, 0.45);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.65);
-        border-radius: 28px;
-        box-shadow: 0 30px 60px -20px rgba(30, 27, 75, 0.06);
+        padding: 2.5rem 1rem;
         z-index: 10;
-        position: relative;
     }
 
-    /* Floating Illustration wrapper */
-    .illustration-wrapper {
-        margin-bottom: 2.25rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .icon-glow-ring {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 120px;
-        height: 120px;
-        background: rgba(255,255,255,0.6);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        border-radius: 50%;
-        box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.08);
-    }
-
-    .floating-icon {
-        animation: float 6s infinite ease-in-out;
-    }
-
-    /* Headings */
+    /* Typography */
     .main-title {
-        font-size: 3rem;
-        font-weight: 800;
-        margin: 0 0 0.85rem 0;
+        font-size: 3.5rem;
+        font-weight: 850;
+        color: #fff;
+        margin: 0 0 0.75rem 0;
         letter-spacing: -0.04em;
-        line-height: 1.15;
-        background: linear-gradient(135deg, #1e1b4b 30%, #4f46e5 100%);
+        line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .main-subtitle {
-        font-size: 1.15rem;
-        color: #4b5563;
-        margin: 0 0 2.5rem 0;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin: 0 0 3.5rem 0;
         font-weight: 400;
-        line-height: 1.5;
+        letter-spacing: -0.01em;
     }
 
-    /* Visual Badges row */
-    .features-preview-row {
+    /* Center Actions Container */
+    .center-actions-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        max-width: 580px;
+        margin: 0 auto;
+    }
+
+    /* Stylish Large buttons */
+    .large-portal-btn {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        text-align: left;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .large-portal-btn:hover {
+        transform: translateY(-4px);
+        background: rgba(30, 41, 59, 0.55);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .student-btn:hover {
+        border-color: rgba(16, 185, 129, 0.35);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(16, 185, 129, 0.08);
+    }
+
+    .teacher-btn:hover {
+        border-color: rgba(6, 182, 212, 0.35);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(6, 182, 212, 0.08);
+    }
+
+    .btn-icon {
+        font-size: 1.75rem;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
         justify-content: center;
+        transition: transform 0.3s ease;
     }
 
-    .preview-badge {
-        padding: 0.45rem 1rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border-radius: 100px;
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        background: rgba(255, 255, 255, 0.5);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.01);
+    .large-portal-btn:hover .btn-icon {
+        transform: scale(1.05);
     }
 
-    .word-badge { color: #047857; border-color: rgba(16, 185, 129, 0.15); background: rgba(16, 185, 129, 0.03); }
-    .mcq-badge { color: #1d4ed8; border-color: rgba(59, 130, 246, 0.15); background: rgba(59, 130, 246, 0.03); }
-    .fill-badge { color: #0e7490; border-color: rgba(6, 182, 212, 0.15); background: rgba(6, 182, 212, 0.03); }
-    .match-badge { color: #7e22ce; border-color: rgba(139, 92, 246, 0.15); background: rgba(139, 92, 246, 0.03); }
+    .btn-text {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
 
-    /* Animated Blur Blobs */
-    .blur-blob {
+    .btn-label {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.15rem;
+    }
+
+    .btn-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .btn-arrow {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        transition: transform 0.25s ease, color 0.25s ease;
+    }
+
+    .large-portal-btn:hover .btn-arrow {
+        color: #fff;
+        transform: translateX(3px);
+    }
+
+    /* Subtle Radial Glows */
+    .subtle-glow {
         position: absolute;
+        width: 500px;
+        height: 500px;
         border-radius: 50%;
-        filter: blur(90px);
+        filter: blur(100px);
         z-index: 1;
         pointer-events: none;
+        opacity: 0.75;
     }
 
-    .blob-1 {
-        width: 350px;
-        height: 350px;
-        background: rgba(165, 180, 252, 0.25);
-        top: 10%;
-        left: 5%;
-        animation: blobFloat 16s infinite ease-in-out;
+    .glow-left {
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
+        top: -10%;
+        left: -10%;
+        animation: floatGlow 15s infinite ease-in-out;
     }
 
-    .blob-2 {
-        width: 400px;
-        height: 400px;
-        background: rgba(232, 121, 249, 0.15);
-        bottom: 10%;
-        right: 5%;
-        animation: blobFloat 20s infinite ease-in-out reverse;
+    .glow-right {
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+        bottom: -10%;
+        right: -10%;
+        animation: floatGlow 18s infinite ease-in-out reverse;
     }
 
-    .blob-3 {
-        width: 300px;
-        height: 300px;
-        background: rgba(14, 116, 144, 0.08);
-        top: 40%;
-        left: 30%;
-        animation: blobFloat 24s infinite ease-in-out;
-    }
-
-    /* Keyframe Animations */
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-    }
-
-    @keyframes blobFloat {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        33% { transform: translate(30px, -40px) scale(1.05); }
-        66% { transform: translate(-20px, 20px) scale(0.95); }
+    @keyframes floatGlow {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
     }
 
     /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .minimal-header {
+            padding: 1.5rem;
+        }
+    }
+
     @media (max-width: 640px) {
         .smart-portal-wrapper {
-            padding: 8rem 1.5rem 2rem 1.5rem;
+            padding: 9rem 1.5rem 3rem 1.5rem;
             align-items: flex-start;
         }
-        .top-right-actions {
-            top: 2rem;
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            width: calc(100% - 3rem);
+        .minimal-header {
+            flex-direction: column-reverse;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .top-left-actions {
+            width: 100%;
             justify-content: center;
         }
         .portal-pill-btn {
@@ -298,14 +341,11 @@
             justify-content: center;
         }
         .main-title {
-            font-size: 2.35rem;
+            font-size: 2.5rem;
         }
-        .features-preview-row {
-            gap: 0.4rem;
-        }
-        .preview-badge {
-            font-size: 0.75rem;
-            padding: 0.35rem 0.75rem;
+        .center-actions-group {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
     }
 </style>
