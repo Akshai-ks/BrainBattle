@@ -12,9 +12,19 @@
             <h1>👥 Registered Students Directory</h1>
             <p>Search profiles, review grade logs, edit credentials, or toggle replay permissions per game.</p>
         </div>
-        <a href="{% url 'create_student' %}" class="btn btn-primary" style="align-self: flex-start; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 600;">
-            ➕ Enroll New Student
-        </a>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            {% if students %}
+                <form method="POST" action="{% url 'delete_all_students' %}" style="display: inline;" onsubmit="return confirm('⚠️ CRITICAL WARNING:\n\nAre you sure you want to completely delete ALL students and wipe all their grade attempts/records? This action cannot be undone!');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 600; padding: 0.65rem 1.25rem; border: none; cursor: pointer;">
+                        💥 Wipe All Students
+                    </button>
+                </form>
+            {% endif %}
+            <a href="{% url 'create_student' %}" class="btn btn-primary" style="align-self: flex-start; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 600; text-decoration: none;">
+                ➕ Enroll New Student
+            </a>
+        </div>
     </div>
 
     <!-- Search Form Panel -->

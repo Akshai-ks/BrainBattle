@@ -53,6 +53,7 @@ urlpatterns = [
     path('teacher/students/<int:student_id>/edit/', views.edit_student, name='edit_student'),
     path('teacher/students/<int:student_id>/profile/', views.student_profile, name='student_profile'),
     path('teacher/students/<int:student_id>/delete/', views.delete_student, name='delete_student'),
+    path('teacher/students/delete-all/', views.delete_all_students, name='delete_all_students'),
     path('teacher/announcements/', views.manage_announcements, name='manage_announcements'),
     path('teacher/announcements/<int:announcement_id>/delete/', views.delete_announcement, name='delete_announcement'),
     path('teacher/feedback/<int:feedback_id>/delete/', views.delete_feedback, name='delete_feedback'),

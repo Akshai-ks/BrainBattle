@@ -825,6 +825,14 @@ def delete_student(request, student_id):
     return redirect('view_students')
 
 @login_required
+def delete_all_students(request):
+    if request.method == 'POST':
+        count = Student.objects.count()
+        Student.objects.all().delete()
+        messages.success(request, f"Successfully deleted all {count} student records.")
+    return redirect('view_students')
+
+@login_required
 def unlock_student_replay(request, student_id, game_id):
     from .models import Student, Game, StudentGamePlayPermission, GameAttempt
     student = get_object_or_404(Student, id=student_id)
