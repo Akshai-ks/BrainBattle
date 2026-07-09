@@ -28,12 +28,9 @@
                         <stop offset="100%" stop-color="#10b981" />
                     </linearGradient>
                 </defs>
-                <!-- Outer Ring -->
                 <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(139, 92, 246, 0.2)"/>
-                <!-- Gamepad D-pad & Buttons integrated on Graduation cap -->
                 <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
                 <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                <!-- Controller elements inside Cap -->
                 <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
                 <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
             </svg>
@@ -42,11 +39,6 @@
         <!-- Heading & Subtitle -->
         <h1 class="main-title">Welcome to Smart Learning Platform</h1>
         <p class="main-subtitle">Learn, Compete, and Track Your Progress</p>
-        
-        <!-- Subtle Interactive Indicator -->
-        <div class="indicator-bar">
-            <span>Choose a portal at the top-left to begin</span>
-        </div>
     </div>
 </div>
 
@@ -65,7 +57,7 @@
         flex-direction: column;
     }
 
-    /* Hide standard dark navbar on index to showcase custom layout */
+    /* Hide standard dark navbar on index */
     #main-navbar {
         display: none !important;
     }
@@ -142,19 +134,19 @@
     /* Centered Content Card */
     .portal-main-card {
         max-width: 650px;
-        padding: 3rem 2rem;
+        padding: 3.5rem 3rem;
         text-align: center;
-        background: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.35);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.45);
         border-radius: 24px;
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.02);
     }
 
     /* Floating Illustration wrapper */
     .illustration-wrapper {
-        margin-bottom: 2.25rem;
+        margin-bottom: 2rem;
         display: flex;
         justify-content: center;
     }
@@ -176,21 +168,9 @@
     .main-subtitle {
         font-size: 1.15rem;
         color: #4b5563;
-        margin: 0 0 2.5rem 0;
+        margin: 0;
         font-weight: 400;
         line-height: 1.5;
-    }
-
-    /* Indicator Bar */
-    .indicator-bar {
-        display: inline-block;
-        padding: 0.5rem 1.25rem;
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        border-radius: 100px;
-        font-size: 0.8rem;
-        color: #6b7280;
-        font-weight: 500;
     }
 
     /* Floating Animation keyframes */
