@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}View Games - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="view-games-section">
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div class="dashboard-title">
+            <a href="{% url 'teacher_dashboard' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Control Hub
+            </a>
+            <h1>🎮 Gamified Learning Catalog</h1>
+            <p>Monitor your active games, customize contents, or temporarily disable access for classroom sessions.</p>
+        </div>
+    </div>
+
+    <!-- Active Games Section -->
+    <div style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: #4ade80;">
+            ✅ Active Games
+        </h2>
+        {% if active_games %}
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-2col-md">
+                {% for game in active_games %}
+                    <div class="game-management-card active">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.25rem;">{{ game.title }}</h3>
+                            <span class="badge" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); padding: 0.25rem 0.5rem; font-size: 0.75rem;">Active</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.5;">{{ game.instructions|default:"No instructions provided." }}</p>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            <span>Type: <strong>{{ game.get_game_type_display }}</strong></span> &bull; 
+                            <span>Max Marks: <strong>{{ game.full_marks|default:"10" }}</strong></span>
+                        </div>
+
+                        <!-- Performance and Tracking Summary -->
+                        <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.82rem; color: var(--text-secondary);">
+                            <div>👥 Total Players: <strong style="color: var(--accent-cyan);">{{ game.total_players }}</strong></div>
+                            <div>🔄 Starts: <strong style="color: #a78bfa;">{{ game.total_entries }}</strong></div>
+                            <div>🏆 High Score: <strong style="color: var(--accent-yellow);">{{ game.high_score }}</strong></div>
+                            <div>📈 Avg Score: <strong style="color: var(--accent-green);">{{ game.avg_score }}</strong></div>
+                            <div>🕒 Avg Time: <strong style="color: #60a5fa; font-family: monospace;">{{ game.avg_time }}s</strong></div>
+                        </div>
+
+                        <!-- Top 3 Leaderboard Quick View -->
+                        <div style="margin-top: 1rem; background: rgba(0,0,0,0.15); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.03); margin-bottom: 1.25rem;">
+                            <h4 style="font-size: 0.8rem; color: var(--accent-yellow); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">🏆 Game Leaderboard</h4>
+                            {% if not game.leaderboard_top5 %}
+                                <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">No attempts recorded yet.</span>
+                            {% else %}
+                                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    {% for attempt in game.leaderboard_top5|slice:":3" %}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary);">
+                                            <span style="display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+                                                <span style="color: var(--text-muted);">#{{ forloop.counter }}</span>
+                                                <span style="color: #fff;">{{ attempt.student.name }}</span>
+                                            </span>
+                                            <span style="font-family: monospace;">
+                                                <strong style="color: var(--accent-yellow);">{{ attempt.score }}</strong>/{{ attempt.max_score }} ({{ attempt.time_taken }}s)
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-wrap: wrap;">
+                            <a href="{% url 'play_game' game.id %}?trial=true" target="_blank" class="btn btn-primary btn-sm" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.35); text-decoration: none; padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;">🎮 Play Trial</a>
+                            <a href="{% url 'game_insights' game.id %}" class="btn btn-secondary btn-sm" style="color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-align: center; flex: 1;">📊 Insights</a>
+                            <a href="{% url 'setup_game_questions' game.id %}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center;">⚙️ Edit Game</a>
+                            <a href="{% url 'toggle_game_active' game.id %}" class="btn btn-warning btn-sm" style="flex: 1; text-align: center; font-weight: 600;">🔒 Deactivate</a>
+                            <a href="{% url 'delete_game' game.id %}" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.75rem;" onclick="return confirm('Are you sure you want to delete \'{{ game.title|escapejs }}\'? This will delete all student records and data associated with this game.');">🗑️</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align: center; padding: 2.5rem; border: 1px dashed var(--border-color);">
+                <p style="color: var(--text-secondary); margin: 0;">No active games currently available. Turn on an inactive game or create a new one.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Inactive Games Section -->
+    <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: #9ca3af;">
+            ❌ Inactive Games
+        </h2>
+        {% if inactive_games %}
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-2col-md">
+                {% for game in inactive_games %}
+                    <div class="game-management-card inactive">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.25rem; opacity: 0.7;">{{ game.title }}</h3>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #9ca3af; border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.25rem 0.5rem; font-size: 0.75rem;">Inactive</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.5; opacity: 0.7;">{{ game.instructions|default:"No instructions provided." }}</p>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; opacity: 0.7;">
+                            <span>Type: <strong>{{ game.get_game_type_display }}</strong></span> &bull; 
+                            <span>Max Marks: <strong>{{ game.full_marks|default:"10" }}</strong></span>
+                        </div>
+
+                        <!-- Performance and Tracking Summary -->
+                        <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.82rem; color: var(--text-secondary); opacity: 0.7;">
+                            <div>👥 Total Players: <strong style="color: var(--accent-cyan);">{{ game.total_players }}</strong></div>
+                            <div>🔄 Starts: <strong style="color: #a78bfa;">{{ game.total_entries }}</strong></div>
+                            <div>🏆 High Score: <strong style="color: var(--accent-yellow);">{{ game.high_score }}</strong></div>
+                            <div>📈 Avg Score: <strong style="color: var(--accent-green);">{{ game.avg_score }}</strong></div>
+                            <div>🕒 Avg Time: <strong style="color: #60a5fa; font-family: monospace;">{{ game.avg_time }}s</strong></div>
+                        </div>
+
+                        <!-- Top 3 Leaderboard Quick View -->
+                        <div style="margin-top: 1rem; background: rgba(0,0,0,0.15); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.03); margin-bottom: 1.25rem; opacity: 0.7;">
+                            <h4 style="font-size: 0.8rem; color: var(--accent-yellow); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">🏆 Game Leaderboard</h4>
+                            {% if not game.leaderboard_top5 %}
+                                <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">No attempts recorded yet.</span>
+                            {% else %}
+                                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    {% for attempt in game.leaderboard_top5|slice:":3" %}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary);">
+                                            <span style="display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+                                                <span style="color: var(--text-muted);">#{{ forloop.counter }}</span>
+                                                <span style="color: #fff;">{{ attempt.student.name }}</span>
+                                            </span>
+                                            <span style="font-family: monospace;">
+                                                <strong style="color: var(--accent-yellow);">{{ attempt.score }}</strong>/{{ attempt.max_score }} ({{ attempt.time_taken }}s)
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-wrap: wrap;">
+                            <a href="{% url 'play_game' game.id %}?trial=true" target="_blank" class="btn btn-primary btn-sm" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.35); text-decoration: none; padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;">🎮 Play Trial</a>
+                            <a href="{% url 'game_insights' game.id %}" class="btn btn-secondary btn-sm" style="color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-align: center; flex: 1;">📊 Insights</a>
+                            <a href="{% url 'setup_game_questions' game.id %}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center;">⚙️ Edit Game</a>
+                            <a href="{% url 'toggle_game_active' game.id %}" class="btn btn-success btn-sm" style="flex: 1; text-align: center; font-weight: 600;">🔓 Activate</a>
+                            <a href="{% url 'delete_game' game.id %}" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.75rem;" onclick="return confirm('Are you sure you want to delete \'{{ game.title|escapejs }}\'? This will delete all student records and data associated with this game.');">🗑️</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align: center; padding: 2.5rem; border: 1px dashed var(--border-color);">
+                <p style="color: var(--text-secondary); margin: 0;">No inactive games. All created games are currently online and playable.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<style>
+    .game-management-card {
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        transition: all 0.25s ease;
+    }
+    
+    .game-management-card.active {
+        border-left: 4px solid #4ade80;
+    }
+    
+    .game-management-card.inactive {
+        border-left: 4px solid #6b7280;
+        background: rgba(15, 23, 42, 0.3);
+    }
+    
+    .game-management-card:hover {
+        transform: translateY(-3px);
+        background: rgba(30, 41, 59, 0.5);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Download Notes - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 2rem; margin: 0 0 0.25rem 0;">📥 Lecture Notes & Study Material</h2>
+            <p style="color: var(--text-secondary); margin: 0;">Download reference files, reading notes, and PDF slides uploaded by your teacher.</p>
+        </div>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1.25rem; text-decoration: none;">
+            ⬅ Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Notes Cards Grid -->
+    {% if not notes %}
+        <div class="glass-panel" style="text-align: center; padding: 5rem 2rem;">
+            <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📚</span>
+            <h3 style="color: #fff; margin-bottom: 0.5rem;">No study materials uploaded</h3>
+            <p style="color: var(--text-secondary); margin: 0;">Reference documents and PDFs will appear here once uploaded by your teacher.</p>
+        </div>
+    {% else %}
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem;" class="grid-3col-md">
+            {% for note in notes %}
+                <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(59, 130, 246, 0.15); transition: border-color 0.2s ease, transform 0.2s ease; min-height: 200px;" onmouseover="this.style.borderColor='rgba(59,130,246,0.35)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(59,130,246,0.15)'; this.style.transform='none';">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
+                            <h4 style="margin: 0; color: #fff; font-size: 1.15rem; font-weight: 700;">{{ note.title }}</h4>
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; text-transform: uppercase;">
+                                {{ note.subject.name }}
+                            </span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.45; margin: 0 0 1rem 0;">{{ note.description|default:"No description provided." }}</p>
+                    </div>
+
+                    <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: auto;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">
+                            Uploaded: {{ note.uploaded_at|date:"M d, Y" }}
+                        </span>
+                        <a href="{{ note.pdf_file.url }}" download class="btn btn-primary btn-sm" style="font-weight: 700; padding: 0.45rem 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                            📥 Download
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    @media (min-width: 768px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+    @media (min-width: 1024px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

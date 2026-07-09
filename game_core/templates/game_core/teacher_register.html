@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Registration - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" id="teacher-register-panel">
+    <h2 class="form-title">Create Teacher Account</h2>
+    
+    <form method="POST" id="teacher-register-form">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span style="font-size: 0.85rem; color: var(--accent-red); margin-top: 0.25rem;">⚠️ {{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-teacher-reg">
+            Register Account
+        </button>
+    </form>
+    
+    <div class="form-footer">
+        Already have a teacher account? <a href="{% url 'teacher_login' %}">Login here</a>
+    </div>
+</div>
+{% endblock %}

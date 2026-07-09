@@ -1,0 +1,36 @@
+<div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; border-color: {% if is_blocked %}rgba(255,255,255,0.06){% else %}rgba(16,185,129,0.15){% endif %}; opacity: {% if is_blocked %}0.75{% else %}1{% endif %}; transition: all 0.25s ease; min-height: 220px;">
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
+            <h4 style="margin: 0; color: #fff; font-size: 1.15rem; font-weight: 700;">{{ game.title }}</h4>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.25); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 3px; font-weight: 700; text-transform: uppercase; font-family: monospace;">
+                {{ game.get_game_type_display }}
+            </span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin: 0 0 1.25rem 0;">{{ game.instructions|default:"No instructions provided." }}</p>
+        
+        <div style="font-size: 0.82rem; color: var(--text-muted); display: flex; gap: 1rem; margin-bottom: 1.25rem;">
+            <div>Questions: <strong style="color: var(--text-primary);">
+                {% if game.game_type == 'mcq' %}{{ game.mcq_questions.count }}{% elif game.game_type == 'word_puzzle' %}{{ game.word_puzzles.count }}{% elif game.game_type == 'fill_blanks' %}{{ game.blank_questions.count }}{% elif game.game_type == 'match_following' %}{{ game.match_items.count }}{% endif %}
+            </strong></div>
+            <div>Max Marks: <strong style="color: var(--accent-yellow);">{{ game.full_marks|default:"10" }}</strong></div>
+        </div>
+    </div>
+
+    <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: auto;">
+        {% if not is_blocked %}
+            <span style="font-size: 0.82rem; color: var(--text-secondary);">
+                Attempts: <strong>{{ game.student_attempts_count|default:0 }}</strong> / {{ game.allowed_attempts|default:1 }}
+            </span>
+            <a href="{% url 'play_game' game.id %}" class="btn btn-primary btn-sm" style="font-weight: 700; padding: 0.45rem 1rem; text-decoration: none;">
+                Play Game 🎮
+            </a>
+        {% else %}
+            <span style="font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;">
+                🔒 Locked / Completed
+            </span>
+            <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">
+                Attempts: <strong>{{ game.student_attempts_count|default:0 }}</strong> / {{ game.allowed_attempts|default:1 }}
+            </span>
+        {% endif %}
+    </div>
+</div>

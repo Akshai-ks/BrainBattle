@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage PDF Notes - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="manage-notes-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                📚 PDF Notes Repository
+            </h1>
+            <p style="color: var(--text-secondary); margin: 0;">Upload, edit, and manage PDF study notes for students.</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary btn-sm">
+                ◀ Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Dual Column Layout: Form on Left/Right, List on the other -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; margin-top: 1rem;" class="grid-2col-md">
+        <!-- List of Notes (Left/Main column on desktop) -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; order: 2;" class="order-1-md">
+            <div class="glass-panel" style="padding: 2rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <h3 style="margin-bottom: 1.5rem; color: var(--accent-cyan); font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📂 Uploaded Notes List
+                </h3>
+
+                {% if notes %}
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;">
+                        {% for note in notes %}
+                            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(6, 182, 212, 0.3)';" onmouseout="this.style.borderColor='var(--border-color)';">
+                                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                    <div style="font-size: 2.5rem; color: var(--accent-red); align-self: center;">
+                                        📄
+                                    </div>
+                                    <div>
+                                        <h4 style="margin: 0 0 0.25rem 0; color: #fff; font-size: 1.1rem; font-weight: 700;">{{ note.title }}</h4>
+                                        <span style="display: inline-block; background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 100px; margin-bottom: 0.5rem;">
+                                            {{ note.subject.name }}
+                                        </span>
+                                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.5rem 0; line-height: 1.4;">{{ note.description|default:"No description provided." }}</p>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                            Uploaded by <strong>{{ note.uploaded_by.username }}</strong> on {{ note.uploaded_at|date:"M d, Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <a href="{{ note.file.url }}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="View PDF">
+                                        👁️ View
+                                    </a>
+                                    <a href="{% url 'edit_note' note.id %}" class="btn btn-primary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));">
+                                        ✏️ Edit
+                                    </a>
+                                    <a href="{% url 'delete_note' note.id %}" class="btn btn-danger btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="return confirm('Are you sure you want to delete this PDF note?');">
+                                        🗑️ Delete
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 3rem 1.5rem; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No PDF notes have been uploaded yet.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Use the upload form to add study guides or textbook notes.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Add Notes Form (Right/Secondary column on desktop) -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; order: 1;" class="order-2-md">
+            <div class="glass-panel" style="padding: 2rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: rgba(17, 24, 39, 0.8);">
+                <h3 style="margin-bottom: 1.5rem; color: var(--accent-purple); font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📤 Upload New Note
+                </h3>
+
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    {% csrf_token %}
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="title" style="color: #fff; font-weight: 600; font-size: 0.9rem;">Note Title *</label>
+                        <input type="text" id="title" name="title" required placeholder="e.g. Algebra I Cheat Sheet" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.95rem; width: 100%;">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="subject_id" style="color: #fff; font-weight: 600; font-size: 0.9rem;">Subject *</label>
+                        <select id="subject_id" name="subject_id" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.95rem; width: 100%;">
+                            <option value="">-- Select Existing Subject --</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 0.25rem 0;">OR</div>
+                        <input type="text" id="new_subject" name="new_subject" placeholder="Create new subject (e.g. Chemistry)" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.95rem; width: 100%;">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="description" style="color: #fff; font-weight: 600; font-size: 0.9rem;">Description (Optional)</label>
+                        <textarea id="description" name="description" rows="3" placeholder="Brief summary of notes contents..." style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.95rem; width: 100%; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="file" style="color: #fff; font-weight: 600; font-size: 0.9rem;">Upload PDF Document *</label>
+                        <input type="file" id="file" name="file" accept=".pdf" required style="background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--border-color); color: var(--text-secondary); padding: 1rem; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.9rem; width: 100%; cursor: pointer;">
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">Only PDF files are allowed. Supports large documents (100+ pages).</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="padding: 0.85rem; font-size: 1rem; border-radius: var(--radius-sm); font-weight: 600; margin-top: 0.5rem;">
+                        🚀 Upload PDF Note
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 2fr 1fr !important;
+        }
+        .order-1-md {
+            order: 1 !important;
+        }
+        .order-2-md {
+            order: 2 !important;
+        }
+    }
+</style>
+{% endblock %}

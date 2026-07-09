@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+
+{% block title %}Play Word Puzzle - EduPlay{% endblock %}
+
+{% block content %}
+{% if trial_mode %}
+    <!-- Trial Mode Banner -->
+    <div style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.35); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.25rem;">⚠️</span>
+            <div style="text-align: left;">
+                <strong style="color: #fbbf24; font-size: 0.95rem;">Trial Mode – Preview Only</strong>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Your score will not be recorded on the leaderboard.</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; font-size: 0.72rem; padding: 0.25rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(251, 191, 36, 0.25);">Not Recorded</span>
+            <a href="#" onclick="window.close(); return false;" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; text-decoration: none; color: #fff; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">Exit Trial</a>
+        </div>
+    </div>
+{% endif %}
+<div class="glass-panel slide-up" style="max-width: 800px; margin: 0 auto;" id="word-game-container">
+    <div class="game-play-header">
+        <div>
+            <h2 style="font-size: 1.75rem;">{{ game.title }}</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="game-score-display" id="live-score">Total Score: 0 / {{ total_max_score }}</div>
+            <div class="game-timer" id="timer-display">⏱️ 0s</div>
+        </div>
+    </div>
+
+    <!-- Question Indicator and Current Word Score -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span style="font-weight: 700; color: var(--accent-purple);" id="word-indicator">Word 1 of {{ total_questions }}</span>
+        <span style="font-weight: 700; color: var(--accent-yellow);" id="word-score-indicator">Word Value: --</span>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+        <strong style="color: var(--accent-cyan); font-size: 0.85rem;">Instructions:</strong>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem;">{{ game.instructions }}</p>
+    </div>
+
+    <!-- Clue Section -->
+    <div class="glass-panel clue-container-panel" style="margin-top: 1.5rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="margin: 0; color: var(--accent-yellow); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                💡 Hint & Clue System
+            </h4>
+            <div id="clue-status-text" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">
+                Clue 1: Auto-reveals in <span id="clue-countdown" style="color: var(--accent-cyan);">10</span>s
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-2" disabled onclick="requestClue2()" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                🔒 Unlock Clue 2 (-3 Marks)
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-3" disabled onclick="requestClue3()" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                🔒 Unlock Clue 3 (-3 Marks)
+            </button>
+        </div>
+
+        <div id="display-clue-1" class="clue-box" style="display: none; border-left: 3px solid var(--accent-cyan); background: rgba(6, 182, 212, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+            <strong style="color: var(--accent-cyan); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 1 (Free Hint):</strong>
+            <span id="text-clue-1" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+        </div>
+        <div id="display-clue-2" class="clue-box" style="display: none; border-left: 3px solid var(--accent-yellow); background: rgba(251, 191, 36, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+            <strong style="color: var(--accent-yellow); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 2 (Reduced Marks):</strong>
+            <span id="text-clue-2" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+        </div>
+        <div id="display-clue-3" class="clue-box" style="display: none; border-left: 3px solid var(--accent-red); background: rgba(244, 63, 94, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm);">
+            <strong style="color: var(--accent-red); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 3 (Further Reduced Marks):</strong>
+            <span id="text-clue-3" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+        </div>
+    </div>
+
+    <!-- Target Word Tiles -->
+    <div class="word-puzzle-area">
+        <div class="word-display-container" id="answer-slots">
+            <!-- Empty slots generated by JS -->
+        </div>
+
+        <!-- Shuffled Letter Buttons -->
+        <div class="letters-grid" id="letters-input-grid">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="controls-row">
+            <button type="button" class="btn btn-secondary" onclick="backspaceLetter()" id="backspace-btn">
+                ⬅ Backspace
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="clearLetters()" id="clear-btn">
+                🔄 Clear All
+            </button>
+            <button type="button" class="btn btn-primary" onclick="checkAnswer()" id="submit-answer-btn">
+                Submit Answer
+            </button>
+            <button type="button" class="btn btn-accent" onclick="advanceNextWord()" id="next-word-btn" style="display: none;">
+                Next Word ➔
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Success/Wrong Answer Modal Overlay -->
+<div class="modal-overlay" id="result-modal">
+    <div class="modal-box">
+        <div class="modal-icon-success" id="modal-icon">🏆</div>
+        <h2 class="modal-title" id="modal-title">Correct Answer!</h2>
+        <p class="modal-desc" id="modal-body">Great job! You solved the puzzle.</p>
+        <button type="button" class="btn btn-primary" style="min-width: 150px;" id="modal-continue-btn">
+            Continue ➔
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load word puzzles array from Django context
+    const puzzles = JSON.parse('{{ puzzles_json|escapejs }}');
+    const totalPuzzles = puzzles.length;
+    const totalMaxScore = {{ total_max_score }};
+    
+    let currentIndex = 0;
+    let selectedLetters = [];
+    
+    // Live Timing & Scoring details
+    let totalTimeElapsed = 0;
+    let puzzleTimeElapsed = 0;
+    let timerInterval = null;
+    let accumulatedScore = 0;
+    
+    // Current word state variables
+    let currentPuzzle = null;
+    let currentWordScore = 0;
+    let currentCluesUsed = 0;
+    let clue1Unlocked = false;
+    let clue2Unlocked = false;
+    let clue3Unlocked = false;
+    let clue1Countdown = 10;
+
+    // Synthesize Audio using Web Audio API
+    function playSuccessSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24);
+            osc.frequency.setValueAtTime(1046.5, ctx.currentTime + 0.36);
+            
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            
+            osc.start();
+            osc.stop(ctx.currentTime + 0.6);
+        } catch(e) { console.log(e); }
+    }
+
+    function playErrorSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.35);
+            
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch(e) { console.log(e); }
+    }
+
+    function showFloatingEmoji(emoji) {
+        const div = document.createElement('div');
+        div.className = 'floating-emoji-effect';
+        div.innerText = emoji;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 1800);
+    }
+
+    // Load active puzzle question word
+    function loadPuzzle(index) {
+        if (index >= totalPuzzles) return;
+        
+        currentPuzzle = puzzles[index];
+        selectedLetters = [];
+        puzzleTimeElapsed = 0;
+        currentCluesUsed = 0;
+        currentWordScore = currentPuzzle.full_marks;
+        
+        // Update header and displays
+        document.getElementById('word-indicator').innerText = `Word ${index + 1} of ${totalPuzzles}`;
+        document.getElementById('word-score-indicator').innerText = `Word Value: ${currentWordScore}`;
+        
+        clue1Unlocked = false;
+        clue2Unlocked = false;
+        clue3Unlocked = false;
+        clue1Countdown = 10;
+        currentCluesUsed = 0;
+        currentWordScore = 10;
+        
+        document.getElementById('display-clue-1').style.display = 'none';
+        document.getElementById('display-clue-2').style.display = 'none';
+        document.getElementById('display-clue-3').style.display = 'none';
+        
+        const btn2 = document.getElementById('btn-clue-2');
+        btn2.disabled = true;
+        btn2.style.opacity = '0.5';
+        btn2.style.cursor = 'not-allowed';
+        btn2.innerText = "🔒 Unlock Clue 2 (-3 Marks)";
+        
+        const btn3 = document.getElementById('btn-clue-3');
+        btn3.disabled = true;
+        btn3.style.opacity = '0.5';
+        btn3.style.cursor = 'not-allowed';
+        btn3.innerText = "🔒 Unlock Clue 3 (-3 Marks)";
+        
+        document.getElementById('clue-status-text').innerHTML = `Clue 1: Auto-reveals in <span id="clue-countdown" style="color: var(--accent-cyan);">10</span>s`;
+        
+        document.getElementById('text-clue-1').innerText = currentPuzzle.clue1;
+        document.getElementById('text-clue-2').innerText = currentPuzzle.clue2;
+        document.getElementById('text-clue-3').innerText = currentPuzzle.clue3 || `First letter of the word is '${currentPuzzle.correct_word[0]}'.`;
+
+        // Initialize Tiles/Slots
+        const slotsContainer = document.getElementById('answer-slots');
+        slotsContainer.innerHTML = '';
+        for (let i = 0; i < currentPuzzle.correct_word.length; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'word-display-tile';
+            tile.id = `slot-${i}`;
+            slotsContainer.appendChild(tile);
+        }
+
+        // Render Clickable Letter Buttons
+        const lettersGrid = document.getElementById('letters-input-grid');
+        lettersGrid.innerHTML = '';
+        currentPuzzle.letters.forEach(letter => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'letter-btn';
+            btn.innerText = letter;
+            btn.onclick = function() {
+                selectLetter(this, letter);
+            };
+            lettersGrid.appendChild(btn);
+        });
+        
+        // Enable buttons & controls
+        document.getElementById('submit-answer-btn').disabled = false;
+    }
+
+    // Letter Selections
+    function selectLetter(buttonEl, letter) {
+        if (selectedLetters.length >= currentPuzzle.correct_word.length) return;
+        
+        buttonEl.disabled = true;
+        buttonEl.classList.add('used');
+        selectedLetters.push({ letter: letter, element: buttonEl });
+        updateSlots();
+    }
+
+    function updateSlots() {
+        for (let i = 0; i < currentPuzzle.correct_word.length; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (i < selectedLetters.length) {
+                slot.innerText = selectedLetters[i].letter;
+                slot.classList.add('filled');
+            } else {
+                slot.innerText = '';
+                slot.classList.remove('filled');
+            }
+        }
+    }
+
+    function backspaceLetter() {
+        if (selectedLetters.length === 0) return;
+        const popped = selectedLetters.pop();
+        
+        popped.element.disabled = false;
+        popped.element.classList.remove('used');
+        updateSlots();
+    }
+
+    function clearLetters() {
+        selectedLetters.forEach(item => {
+            item.element.disabled = false;
+            item.element.classList.remove('used');
+        });
+        selectedLetters = [];
+        updateSlots();
+    }
+
+    // Timed milestone ticks
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            totalTimeElapsed++;
+            puzzleTimeElapsed++;
+            
+            document.getElementById('timer-display').innerText = `⏱️ ${totalTimeElapsed}s`;
+
+            // Countdown for Clue 1
+            if (!clue1Unlocked) {
+                clue1Countdown--;
+                const countDisplay = document.getElementById('clue-countdown');
+                if (countDisplay) countDisplay.innerText = clue1Countdown;
+                
+                if (clue1Countdown <= 0) {
+                    clue1Unlocked = true;
+                    document.getElementById('display-clue-1').style.display = 'block';
+                    document.getElementById('clue-status-text').innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">🟢 Clue 1 Active</span>`;
+                    
+                    const btn2 = document.getElementById('btn-clue-2');
+                    btn2.disabled = false;
+                    btn2.style.opacity = '1';
+                    btn2.style.cursor = 'pointer';
+                }
+            }
+        }, 1000);
+    }
+
+    function requestClue2() {
+        if (!clue1Unlocked || clue2Unlocked) return;
+        
+        const confirmReveal = confirm("If you view this clue, your mark will be reduced. Do you want to continue?");
+        if (confirmReveal) {
+            clue2Unlocked = true;
+            currentWordScore = 7;
+            currentCluesUsed = 1;
+            document.getElementById('word-score-indicator').innerText = `Word Value: ${currentWordScore}`;
+            document.getElementById('display-clue-2').style.display = 'block';
+            
+            const btn2 = document.getElementById('btn-clue-2');
+            btn2.disabled = true;
+            btn2.style.opacity = '0.5';
+            btn2.style.cursor = 'not-allowed';
+            btn2.innerText = "🔓 Clue 2 Unlocked";
+            
+            const btn3 = document.getElementById('btn-clue-3');
+            btn3.disabled = false;
+            btn3.style.opacity = '1';
+            btn3.style.cursor = 'pointer';
+        }
+    }
+
+    function requestClue3() {
+        if (!clue2Unlocked || clue3Unlocked) return;
+        
+        const confirmReveal = confirm("This will reduce more marks. Continue?");
+        if (confirmReveal) {
+            clue3Unlocked = true;
+            currentWordScore = 4;
+            currentCluesUsed = 2;
+            document.getElementById('word-score-indicator').innerText = `Word Value: ${currentWordScore}`;
+            document.getElementById('display-clue-3').style.display = 'block';
+            
+            const btn3 = document.getElementById('btn-clue-3');
+            btn3.disabled = true;
+            btn3.style.opacity = '0.5';
+            btn3.style.cursor = 'not-allowed';
+            btn3.innerText = "🔓 Clue 3 Unlocked";
+            
+            // Auto fill first letter slot
+            const slot0 = document.getElementById('slot-0');
+            if (slot0 && !slot0.classList.contains('filled')) {
+                const correctLetter = currentPuzzle.correct_word[0];
+                const lettersGrid = document.getElementById('letters-input-grid');
+                const buttons = lettersGrid.querySelectorAll('.letter-btn');
+                for (let btn of buttons) {
+                    if (btn.innerText === correctLetter && !btn.classList.contains('used')) {
+                        selectLetter(btn, correctLetter);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Verify Answers
+    function checkAnswer() {
+        if (selectedLetters.length < currentPuzzle.correct_word.length) {
+            alert("Please fill all slots before submitting!");
+            return;
+        }
+
+        const inputWord = selectedLetters.map(item => item.letter).join('').toUpperCase();
+        const correctWord = currentPuzzle.correct_word.toUpperCase();
+        const displayContainer = document.getElementById('answer-slots');
+        const submitBtn = document.getElementById('submit-answer-btn');
+
+        submitBtn.disabled = true;
+
+        if (inputWord === correctWord) {
+            // Correct Answer
+            accumulatedScore += currentWordScore;
+            document.getElementById('live-score').innerText = `Total Score: ${accumulatedScore} / ${totalMaxScore}`;
+            
+            playSuccessSound();
+            showFloatingEmoji('🥳');
+            displayContainer.style.borderColor = 'var(--accent-green)';
+            displayContainer.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+            
+            if (window.triggerConfetti) {
+                window.triggerConfetti();
+            }
+        } else {
+            // Wrong Answer - Decrease mark (gets 0 for this question)
+            playErrorSound();
+            showFloatingEmoji('😢');
+            displayContainer.classList.add('shake');
+            displayContainer.style.borderColor = 'var(--accent-red)';
+            displayContainer.style.backgroundColor = 'rgba(244, 63, 94, 0.1)';
+            
+            const indicator = document.getElementById('word-score-indicator');
+            indicator.innerText = `Wrong! 😢 (Score: 0)`;
+            indicator.style.color = "var(--accent-red)";
+        }
+
+        // Hide controls and show Next Word button
+        document.getElementById('backspace-btn').style.display = 'none';
+        document.getElementById('clear-btn').style.display = 'none';
+        submitBtn.style.display = 'none';
+
+        const nextWordBtn = document.getElementById('next-word-btn');
+        if (nextWordBtn) {
+            if (currentIndex + 1 < totalPuzzles) {
+                nextWordBtn.innerText = "Next Word ➔";
+            } else {
+                nextWordBtn.innerText = "Finish Game ➔";
+            }
+            nextWordBtn.style.display = 'inline-flex';
+            nextWordBtn.focus();
+        }
+    }
+
+    function advanceNextWord() {
+        const displayContainer = document.getElementById('answer-slots');
+        const indicator = document.getElementById('word-score-indicator');
+        
+        displayContainer.classList.remove('shake');
+        displayContainer.style.borderColor = '';
+        displayContainer.style.backgroundColor = '';
+        indicator.style.color = "var(--accent-yellow)";
+        
+        // Hide next button, show main control buttons
+        document.getElementById('next-word-btn').style.display = 'none';
+        document.getElementById('backspace-btn').style.display = 'inline-flex';
+        document.getElementById('clear-btn').style.display = 'inline-flex';
+        document.getElementById('submit-answer-btn').style.display = 'inline-flex';
+
+        currentIndex++;
+        if (currentIndex < totalPuzzles) {
+            loadPuzzle(currentIndex);
+        } else {
+            clearInterval(timerInterval);
+            submitScoreAJAX();
+        }
+    }
+
+    function submitScoreAJAX() {
+        const formData = new FormData();
+        formData.append('score', accumulatedScore);
+        formData.append('max_score', totalMaxScore);
+        formData.append('clues_used', 0); // Aggregate or individual
+        formData.append('time_taken', totalTimeElapsed);
+
+        fetch("{% url 'submit_score' game.id %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResultModal(data.attempt_id);
+            } else {
+                alert("Error saving score.");
+            }
+        });
+    }
+
+    function showResultModal(attemptId) {
+        const overlay = document.getElementById('result-modal');
+        const icon = document.getElementById('modal-icon');
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        const continueBtn = document.getElementById('modal-continue-btn');
+
+        if (accumulatedScore === totalMaxScore) {
+            icon.innerHTML = '🏆';
+            icon.className = 'modal-icon-success';
+            title.innerText = 'Perfect Score!';
+            title.style.color = 'var(--accent-green)';
+        } else {
+            icon.innerHTML = '🧩';
+            icon.className = 'modal-icon-success';
+            icon.style.borderColor = 'var(--accent-purple)';
+            icon.style.color = 'var(--accent-purple)';
+            title.innerText = 'Puzzle Solved!';
+            title.style.color = 'var(--accent-purple)';
+        }
+        
+        body.innerHTML = `You completed all word puzzles! <br><strong>Total Score: ${accumulatedScore} / ${totalMaxScore}</strong>`;
+        
+        continueBtn.onclick = function() {
+            window.location.href = `/student/result/${attemptId}/`;
+        };
+        
+        overlay.classList.add('active');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if (totalPuzzles > 0) {
+            loadPuzzle(0);
+            startTimer();
+            document.getElementById('live-score').innerText = `Total Score: 0 / ${totalMaxScore}`;
+        } else {
+            alert("No words defined for this game.");
+            window.location.href = "{% url 'student_dashboard' %}";
+        }
+    });
+</script>
+{% endblock %}

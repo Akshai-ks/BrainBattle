@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Registration - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" id="student-register-panel">
+    <h2 class="form-title" style="color: var(--accent-purple);">Student Registration</h2>
+    
+    <form method="POST" id="student-register-form">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span style="font-size: 0.85rem; color: var(--accent-red); margin-top: 0.25rem;">⚠️ {{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" id="submit-student-reg">
+            Register & Start Learning
+        </button>
+    </form>
+    
+    <div class="form-footer">
+        Already registered? <a href="{% url 'student_login' %}">Login here</a>
+    </div>
+</div>
+{% endblock %}

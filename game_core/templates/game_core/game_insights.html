@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Game Insights: {{ game.title }} - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="game-insights-container">
+    <!-- Header with Back Link -->
+    <div style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <div>
+            <a href="{% url 'view_games' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Game Catalog
+            </a>
+            <h1 style="font-size: 2.5rem; margin: 0; font-weight: 800; background: linear-gradient(135deg, #22d3ee 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                📊 Insights: {{ game.title }}
+            </h1>
+            <p style="color: var(--text-secondary); margin: 0.25rem 0 0 0; font-size: 1rem;">
+                Conceptual Game Type: <strong>{{ game.get_game_type_display }}</strong> &bull; Subject: <strong>{{ game.subject.name }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Quick Stats Overview Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem;">
+        <!-- Card 1: Total Players -->
+        <div class="glass-panel stat-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-cyan); text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">👥 Total Players</span>
+            <div style="margin-top: 0.5rem;">
+                <span style="font-size: 2.25rem; font-weight: 800; color: #fff;">{{ unique_players_count }}</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">Unique student logins</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Starts -->
+        <div class="glass-panel stat-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-purple); text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">🔄 Total Game Starts</span>
+            <div style="margin-top: 0.5rem;">
+                <span style="font-size: 2.25rem; font-weight: 800; color: #fff;">{{ total_entries }}</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">Total session entry count</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Completion Rate -->
+        <div class="glass-panel stat-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-green); text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">🎯 Completion Rate</span>
+            <div style="margin-top: 0.5rem;">
+                <span style="font-size: 2.25rem; font-weight: 800; color: var(--accent-green);">{{ completion_rate }}%</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">{{ total_attempts }} submissions total</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Average Score -->
+        <div class="glass-panel stat-card" style="padding: 1.5rem; border-left: 4px solid var(--accent-yellow); text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 120px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">📈 Average Score</span>
+            <div style="margin-top: 0.5rem;">
+                <span style="font-size: 2.25rem; font-weight: 800; color: var(--accent-yellow);">{{ avg_score }}</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">Out of standard weightings</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3.5rem;" class="grid-2col-md">
+        <!-- Leaderboard Block -->
+        <div class="glass-panel" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.015); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                    🏆 Game Leaderboard (Top 10)
+                </h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Tie-Breaker: Speed</span>
+            </div>
+
+            {% if not leaderboard %}
+                <div style="text-align: center; padding: 5rem 1rem; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <span style="font-size: 3rem; display: block; margin-bottom: 0.75rem;">🥇</span>
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">No attempts completed yet.</p>
+                </div>
+            {% else %}
+                <div style="overflow-x: auto; flex: 1;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-secondary);">
+                                <th style="padding: 0.85rem 1.25rem; font-weight: 700; width: 80px;">Rank</th>
+                                <th style="padding: 0.85rem 1.25rem; font-weight: 700;">Student Name</th>
+                                <th style="padding: 0.85rem 1.25rem; font-weight: 700; text-align: center;">Score / Max</th>
+                                <th style="padding: 0.85rem 1.25rem; font-weight: 700; text-align: right;">Time Taken</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in leaderboard %}
+                                <tr class="leaderboard-row" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                    <td style="padding: 0.85rem 1.25rem; font-weight: 800;">
+                                        {% if forloop.counter == 1 %}
+                                            <span class="medal gold" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; font-size: 0.75rem; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);">1st</span>
+                                        {% elif forloop.counter == 2 %}
+                                            <span class="medal silver" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); color: #000; font-size: 0.75rem; box-shadow: 0 0 10px rgba(203, 213, 225, 0.4);">2nd</span>
+                                        {% elif forloop.counter == 3 %}
+                                            <span class="medal bronze" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 0.75rem; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);">3rd</span>
+                                        {% else %}
+                                            <span style="color: var(--text-muted); font-family: monospace; padding-left: 6px;">#{{ forloop.counter }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 0.85rem 1.25rem; font-weight: 600; color: #fff;">{{ attempt.student.name }}</td>
+                                    <td style="padding: 0.85rem 1.25rem; text-align: center; font-weight: 700; color: var(--accent-yellow);">
+                                        {{ attempt.score }} <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">/ {{ attempt.max_score }}</span>
+                                    </td>
+                                    <td style="padding: 0.85rem 1.25rem; text-align: right; color: #22d3ee; font-weight: 600; font-family: monospace;">{{ attempt.time_taken }}s</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Performance Summary Card Details -->
+        <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <h3 style="margin: 0 0 1.25rem 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                    📈 Game Performance Summary
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.5; margin-bottom: 2rem;">
+                    Analyze classroom metrics computed directly from completed runs. Use this to determine concept difficulty.
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Highest Score</span>
+                        <strong style="color: var(--accent-green); font-size: 1.1rem;">{{ high_score }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Lowest Score</span>
+                        <strong style="color: var(--accent-red); font-size: 1.1rem;">{{ low_score }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Average Completion Speed</span>
+                        <strong style="color: #60a5fa; font-size: 1.1rem;">{{ avg_time }} seconds</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Total Attempts Count</span>
+                        <strong style="color: #c084fc; font-size: 1.1rem;">{{ total_attempts }} runs</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.15); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.88rem; color: var(--text-secondary);">
+                💡 <strong>Concept Insight:</strong> {% if avg_score > 8.0 %}Students demonstrate high clarity on this subject concept. Good to proceed!{% else %}The average score suggests students encountered bottlenecks. Consider explaining key aspects using Notes.{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Participants Tracking Details -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.015); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                    📋 Live Student Tracking & Entries Log
+                </h3>
+                <p style="color: var(--text-secondary); margin: 0.25rem 0 0 0; font-size: 0.85rem;">
+                    See who entered this game workspace, their entry timestamps, and best completed grades.
+                </p>
+            </div>
+            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); font-weight: 700; border: 1px solid rgba(6, 182, 212, 0.3);">
+                Tracking Active
+            </span>
+        </div>
+
+        {% if not participants %}
+            <div style="text-align: center; padding: 5rem 1rem;">
+                <span style="font-size: 3rem; display: block; margin-bottom: 0.75rem;">📋</span>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">No student entries recorded for this game yet.</p>
+            </div>
+        {% else %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-secondary);">
+                            <th style="padding: 0.85rem 1.5rem; font-weight: 700;">Student Name</th>
+                            <th style="padding: 0.85rem 1.5rem; font-weight: 700;">Register Number</th>
+                            <th style="padding: 0.85rem 1.5rem; font-weight: 700;">First Entry Time</th>
+                            <th style="padding: 0.85rem 1.5rem; text-align: center; font-weight: 700;">Completed?</th>
+                            <th style="padding: 0.85rem 1.5rem; text-align: center; font-weight: 700;">Best Score</th>
+                            <th style="padding: 0.85rem 1.5rem; font-weight: 700; text-align: right;">Best Run Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in participants %}
+                            <tr class="tracking-row" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td style="padding: 0.85rem 1.5rem; font-weight: 700; color: #fff;">{{ row.student.name }}</td>
+                                <td style="padding: 0.85rem 1.5rem; color: var(--text-secondary); font-family: monospace;">{{ row.student.register_number }}</td>
+                                <td style="padding: 0.85rem 1.5rem; color: var(--text-muted); font-size: 0.82rem;">{{ row.first_entered|date:"Y-m-d H:i:s"|default:"Unknown" }}</td>
+                                <td style="padding: 0.85rem 1.5rem; text-align: center;">
+                                    {% if row.completed %}
+                                        <span style="color: var(--accent-green); background: rgba(16, 185, 129, 0.15); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.25);">Yes ({{ row.attempts_count }} runs)</span>
+                                    {% else %}
+                                        <span style="color: #6b7280; background: rgba(255, 255, 255, 0.05); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.08); font-style: italic;">In Progress</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.85rem 1.5rem; text-align: center; font-weight: 700;">
+                                    {% if row.completed %}
+                                        <span style="color: var(--accent-yellow);">{{ row.best_attempt.score }}</span>
+                                        <span style="color: var(--text-muted); font-size: 0.78rem; font-weight: 500;">/ {{ row.best_attempt.max_score }}</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-size: 0.85rem;">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.85rem 1.5rem; text-align: right; font-weight: 600; font-family: monospace;">
+                                    {% if row.completed %}
+                                        <span style="color: var(--accent-cyan);">{{ row.best_attempt.time_taken }}s</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); font-size: 0.85rem;">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    .leaderboard-row:hover, .tracking-row:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 1.2fr 0.8fr !important;
+        }
+    }
+</style>
+{% endblock %}

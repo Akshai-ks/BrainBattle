@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}👤 Manage Students - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="manage-students-dashboard">
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div class="dashboard-title">
+            <a href="{% url 'teacher_dashboard' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Dashboard
+            </a>
+            <h1>👤 Student Access Management</h1>
+            <p>Add new students, upload rosters, and manage student credentials.</p>
+        </div>
+    </div>
+
+    <!-- Forms Selection Grid -->
+    <div class="grid-2col" style="margin-bottom: 2.5rem; gap: 2rem;">
+        <!-- Manual Creation -->
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.25rem; color: var(--text-primary); font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
+                ✍️ Manual Student Entry
+            </h3>
+            <form method="POST" action="{% url 'manage_students' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="manual">
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="student_name" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;">Student Name</label>
+                    <input type="text" name="name" id="student_name" class="form-control" placeholder="Enter student's full name" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary);">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="student_reg" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;">Register Number</label>
+                    <input type="text" name="register_number" id="student_reg" class="form-control" placeholder="Enter registration number" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary);">
+                    <small style="display: block; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
+                        💡 Default Password will be auto-generated as: <code style="color: var(--accent-cyan); font-weight: 600;">[RegisterNumber]@[RegisterNumber]</code>
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-accent" style="width: 100%; font-size: 0.95rem; padding: 0.7rem; margin-top: 0.5rem;">
+                    Create Student Credentials ➔
+                </button>
+            </form>
+        </div>
+
+        <!-- Excel Upload -->
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.25rem; color: var(--text-primary); font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
+                📥 Import roster via Excel
+            </h3>
+            <form method="POST" action="{% url 'manage_students' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="excel">
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="excel_file" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;">Roster Excel File (.xlsx)</label>
+                    <div style="border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: var(--radius-sm); padding: 2rem; text-align: center; background: rgba(0,0,0,0.15); transition: border-color 0.25s ease;" onmouseover="this.style.borderColor='var(--accent-purple)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" required style="display: none; width: 100%;" onchange="document.getElementById('file-chosen-text').innerText = this.files[0].name">
+                        <label for="excel_file" style="cursor: pointer; display: inline-flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 2.2rem; filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.2));">📄</span>
+                            <span class="btn btn-secondary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Browse File</span>
+                            <span id="file-chosen-text" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">No file chosen</span>
+                        </label>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">
+                        <span style="color: var(--accent-yellow); font-weight: 600;">Instructions:</span>
+                        <ul style="margin-left: 1.2rem; margin-top: 0.25rem; list-style-type: disc;">
+                            <li>The Excel file must contain two columns mapping to student details.</li>
+                            <li>Headers should preferably be <strong style="color: var(--text-primary);">Student Name</strong> and <strong style="color: var(--text-primary);">Register Number</strong>.</li>
+                            <li>Passwords will be generated as <code style="color: var(--accent-cyan);">[RegisterNumber]@[RegisterNumber]</code> automatically.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.95rem; padding: 0.7rem;">
+                    Upload and Import Roster ⚡
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student List Panel -->
+    <div class="glass-panel" id="student-list-panel" style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.4rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>👥 Registered Student Credentials ({{ students|length }})</span>
+        </h3>
+        
+        {% if students %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Register Number (Username)</th>
+                            <th>Default Password Template</th>
+                            <th>Date Created</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                            <tr>
+                                <td style="font-weight: 600; color: #fff;">{{ student.name }}</td>
+                                <td style="font-family: monospace; font-size: 0.95rem; color: var(--accent-cyan); font-weight: 600;">{{ student.register_number }}</td>
+                                <td style="font-family: monospace; font-size: 0.9rem; color: var(--text-secondary);">
+                                    <code>{{ student.register_number }}@{{ student.register_number }}</code>
+                                </td>
+                                <td style="font-size: 0.85rem; color: var(--text-muted);">{{ student.created_at|date:"M d, Y" }}</td>
+                                <td style="text-align: right;">
+                                    <a href="{% url 'delete_student' student.id %}" class="btn btn-danger btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="return confirm('Are you sure you want to delete student \'{{ student.name|escapejs }}\' and remove all access credentials?');">
+                                        Remove 🗑️
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <span style="font-size: 3rem;">👥</span>
+                <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 1.05rem;">No students are registered in the system yet.</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Create students using the options above to enable access control.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}My Marks - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 2rem; margin: 0 0 0.25rem 0;">📊 My Academic Marks</h2>
+            <p style="color: var(--text-secondary); margin: 0;">Review your exam scores and check comparison feedback.</p>
+        </div>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1.25rem; text-decoration: none;">
+            ⬅ Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Comparison Summary Panel -->
+    {% if eval_status != 'no_data' %}
+        <div class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; 
+            border-left: 4px solid {% if eval_status == 'improved' %}var(--accent-green){% elif eval_status == 'declined' %}var(--accent-red){% else %}var(--accent-cyan){% endif %};
+            background: {% if eval_status == 'improved' %}rgba(16, 185, 129, 0.03){% elif eval_status == 'declined' %}rgba(239, 68, 68, 0.03){% else %}rgba(6, 182, 212, 0.03){% endif %};">
+            <span style="font-size: 2.25rem;">
+                {% if eval_status == 'improved' %}📈{% elif eval_status == 'declined' %}📉{% else %}📊{% endif %}
+            </span>
+            <div>
+                <h4 style="margin: 0 0 0.25rem 0; font-size: 1.1rem; color: #fff; font-weight: 700;">Performance Evaluation</h4>
+                <p style="margin: 0; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.5;">{{ eval_summary }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Marks Table Card -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Academic Records Directory</h3>
+        </div>
+        
+        {% if not my_marks %}
+            <div style="text-align: center; padding: 4rem 1rem;">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 1rem;">📝</span>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">No academic marks records have been posted yet by your teacher.</p>
+            </div>
+        {% else %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.02);">
+                            <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--text-secondary);">Subject</th>
+                            <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--text-secondary);">Examination</th>
+                            <th style="padding: 1rem 1.5rem; font-weight: 700; color: var(--text-secondary); text-align: right;">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mark in my_marks %}
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                                <td style="padding: 1rem 1.5rem; font-weight: 600; color: #fff;">{{ mark.subject.name }}</td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <span class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-secondary); font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);">
+                                        {{ mark.exam_type }}
+                                    </span>
+                                </td>
+                                <td style="padding: 1rem 1.5rem; text-align: right; font-weight: 800; color: var(--accent-yellow); font-size: 1.1rem;">
+                                    {{ mark.marks }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">/ {{ mark.max_marks }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

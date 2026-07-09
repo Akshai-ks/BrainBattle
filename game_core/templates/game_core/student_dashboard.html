@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}🎓 {{ request.session.student_name }} - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="student-dashboard">
+    <!-- Welcome Header -->
+    <div class="dashboard-header" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div class="dashboard-title">
+            <h1 style="font-size: 2.5rem; color: #fff; margin-bottom: 0.25rem;">🎓 Welcome, {{ request.session.student_name }}!</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Explore interactive learning games, download note resources, and inspect performance details.</p>
+        </div>
+    </div>
+
+    <!-- Announcements Alert Board -->
+    {% if announcements %}
+        <div class="glass-panel" style="margin-bottom: 2.5rem; padding: 1.25rem 1.5rem; border-left: 4px solid var(--accent-purple); background: rgba(139, 92, 246, 0.03);">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 1.05rem; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                📢 Teacher Announcements & Broadcasts
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 180px; overflow-y: auto; padding-right: 0.5rem;">
+                {% for ann in announcements %}
+                    <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: var(--radius-sm);">
+                        <p style="margin: 0 0 0.25rem 0; color: #fff; font-size: 0.92rem; line-height: 1.45; white-space: pre-wrap;">{{ ann.message }}</p>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ ann.created_at|date:"M d, H:i" }} &bull; Teacher broadcast</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Main Navigation Grid -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem;" class="grid-3col-md">
+        
+        <!-- Card 1: Play Game -->
+        <a href="{% url 'student_view_games' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">🎮</div>
+            <div class="menu-card-body">
+                <h3>Play Game</h3>
+                <p>Access the catalog of approved quizzes, MCQs, word puzzles, and matching matches.</p>
+            </div>
+        </a>
+
+        <!-- Card 2: View Marks -->
+        <a href="{% url 'student_view_marks' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">📊</div>
+            <div class="menu-card-body">
+                <h3>View Marks</h3>
+                <p>Check exam scores, compare subject performance, and review grades.</p>
+            </div>
+        </a>
+
+        <!-- Card 3: Download Notes -->
+        <a href="{% url 'student_view_notes' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">📥</div>
+            <div class="menu-card-body">
+                <h3>Download Notes</h3>
+                <p>Retrieve reference slides, study documents, and lecture PDFs uploaded by your teacher.</p>
+            </div>
+        </a>
+
+        <!-- Card 4: Send Anonymous Suggestion -->
+        <a href="{% url 'student_send_feedback' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">📝</div>
+            <div class="menu-card-body">
+                <h3>Send Suggestion</h3>
+                <p>Post suggestions, feedback, or comments anonymously to the classroom moderators.</p>
+            </div>
+        </a>
+
+        <!-- Card 5: Performance Analysis -->
+        <a href="{% url 'student_performance_analysis' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">📈</div>
+            <div class="menu-card-body">
+                <h3>Performance Analysis</h3>
+                <p>Review visual analysis graphs, exam progress statistics, and check the leaderboard.</p>
+            </div>
+        </a>
+
+        <!-- Card: Change Password -->
+        <a href="{% url 'student_change_password' %}" class="menu-card student-theme">
+            <div class="menu-card-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">🔑</div>
+            <div class="menu-card-body">
+                <h3>Change Password</h3>
+                <p>Modify and update your credentials securely to improve account protection.</p>
+            </div>
+        </a>
+
+        <!-- Card 6: Conditional Student Creator Zone -->
+        {% if student.can_create_games or my_created_games %}
+            <a href="#student-creator-zone" class="menu-card creator-theme">
+                <div class="menu-card-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">🛠️</div>
+                <div class="menu-card-body">
+                    <h3>My Game Creator Zone</h3>
+                    <p>Design educational quiz templates and submit them to your teacher for review.</p>
+                </div>
+            </a>
+        {% endif %}
+
+    </div>
+
+    <!-- Student Game Creator Section (Visible at bottom if has drafts/permission) -->
+    {% if student.can_create_games or my_created_games %}
+        <div class="glass-panel" id="student-creator-zone" style="margin-top: 2rem; padding: 2rem; border-color: rgba(251, 191, 36, 0.2); background: rgba(30, 41, 59, 0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.25rem 0; font-size: 1.4rem; color: #fff; display: flex; align-items: center; gap: 0.5rem; font-weight: 800; color: #fbbf24;">
+                        🛠️ My Game Creator Zone
+                    </h3>
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.88rem;">Design educational games and submit them to the teacher for publication.</p>
+                </div>
+                {% if student.can_create_games %}
+                    <a href="{% url 'student_create_game_setup' %}" class="btn btn-accent" style="padding: 0.6rem 1.25rem; font-weight: 700; border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--accent-purple); color: white; border-color: var(--accent-purple); text-decoration: none;">
+                        ➕ Create New Game
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if my_created_games %}
+                <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;" class="grid-3col-md-custom">
+                    {% for game in my_created_games %}
+                        <div class="student-game-card" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
+                                    <h4 style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 700;">{{ game.title }}</h4>
+                                    <div>
+                                        {% if game.approval_status == 'draft' %}
+                                            <span style="background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(255,255,255,0.15);">Draft</span>
+                                        {% elif game.approval_status == 'pending' %}
+                                            <span style="background: rgba(250, 204, 21, 0.15); color: #facc15; font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(250, 204, 21, 0.3);">Pending Approval</span>
+                                        {% elif game.approval_status == 'approved' %}
+                                            <span style="background: rgba(74, 222, 128, 0.15); color: #4ade80; font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(74, 222, 128, 0.3);">Approved</span>
+                                        {% elif game.approval_status == 'rejected' %}
+                                            <span style="background: rgba(239, 68, 68, 0.15); color: #f87171; font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3);">Rejected</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.45; margin: 0 0 1rem 0;">{{ game.instructions|truncatechars:100 }}</p>
+                                
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                                    <span>Type: <strong>{{ game.get_game_type_display }}</strong></span>
+                                </div>
+
+                                {% if game.rejection_reason and game.approval_status == 'rejected' %}
+                                    <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem; color: #fca5a5; margin-bottom: 1rem;">
+                                        💬 Teacher Feedback: "{{ game.rejection_reason }}"
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto;">
+                                {% if game.approval_status == 'draft' or game.approval_status == 'rejected' %}
+                                    <a href="{% url 'student_setup_game_questions' game.id %}" class="btn btn-secondary btn-sm" style="flex: 1; font-size: 0.75rem; padding: 0.4rem; text-align: center; text-decoration: none;">
+                                        ✏️ Questions
+                                    </a>
+                                    <a href="{% url 'student_submit_game' game.id %}" class="btn btn-accent btn-sm" style="flex: 1; font-size: 0.75rem; padding: 0.4rem; text-align: center; font-weight: 700; color: white; text-decoration: none; background: var(--accent-purple); border-color: var(--accent-purple);" onclick="return confirm('Submit this game for review? You will not be able to edit questions while it is pending review.');">
+                                        🚀 Submit
+                                    </a>
+                                {% elif game.approval_status == 'approved' %}
+                                    <a href="{% url 'play_game' game.id %}" class="btn btn-success btn-sm" style="width: 100%; font-size: 0.75rem; padding: 0.4rem; text-align: center; background: var(--accent-green); color: white; text-decoration: none;">
+                                        Play Approved Game 🎮
+                                    </a>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-align: center; width: 100%; padding: 0.4rem;">
+                                        ⏳ Pending Teacher Review
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0; margin: 0; font-size: 0.9rem;">
+                    You haven't designed any educational games yet. Click "Create New Game" above to get started!
+                </p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+
+<style>
+    .menu-card {
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        height: 100%;
+    }
+    
+    .menu-card.student-theme:hover {
+        transform: translateY(-5px);
+        border-color: rgba(16, 185, 129, 0.4);
+        background: rgba(30, 41, 59, 0.65);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(16, 185, 129, 0.1);
+    }
+    
+    .menu-card.creator-theme:hover {
+        transform: translateY(-5px);
+        border-color: rgba(251, 191, 36, 0.4);
+        background: rgba(30, 41, 59, 0.65);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(251, 191, 36, 0.1);
+    }
+    
+    .menu-card-icon {
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+    }
+    
+    .menu-card-body h3 {
+        margin: 0 0 0.4rem 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+        transition: color 0.2s ease;
+    }
+    
+    .menu-card.student-theme:hover .menu-card-body h3 {
+        color: var(--accent-green);
+    }
+    
+    .menu-card.creator-theme:hover .menu-card-body h3 {
+        color: #fbbf24;
+    }
+    
+    .menu-card-body p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .student-game-card:hover {
+        border-color: rgba(251, 191, 36, 0.4) !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+    }
+
+    @media (min-width: 768px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+        .grid-3col-md-custom {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr 1fr !important;
+        }
+        .grid-3col-md-custom {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+</style>
+{% endblock %}

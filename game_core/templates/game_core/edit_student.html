@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Student - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="edit-student-section" style="max-width: 600px; margin: 0 auto;">
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div class="dashboard-title">
+            <a href="{% url 'view_students' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Student Directory
+            </a>
+            <h1>✏️ Edit Student Profile</h1>
+            <p>Update registration identifiers or override the current password credentials for candidate <strong>{{ student.name }}</strong>.</p>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="padding: 2rem;">
+        <form method="POST" action="{% url 'edit_student' student.id %}">
+            {% csrf_token %}
+            
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="student_name" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Student Name</label>
+                <input type="text" name="name" id="student_name" class="form-control" value="{{ student.name }}" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="student_reg" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Register Number</label>
+                <input type="text" name="register_number" id="student_reg" class="form-control" value="{{ student.register_number }}" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="student_email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Email Address</label>
+                <input type="email" name="email" id="student_email" class="form-control" value="{{ student.email|default:'' }}" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="student_pwd" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Override Password (Optional)</label>
+                <input type="password" name="password" id="student_pwd" class="form-control" placeholder="Leave blank to keep current password" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+                <small style="display: block; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
+                    💡 Inputting a value here will generate a new secure hash password for this student.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-accent" style="width: 100%; font-size: 0.95rem; font-weight: 700; padding: 0.75rem;">
+                Update Profile details ➔
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

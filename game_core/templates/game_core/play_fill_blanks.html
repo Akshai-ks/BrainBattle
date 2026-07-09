@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+
+{% block title %}Play Fill in the Blanks - EduPlay{% endblock %}
+
+{% block content %}
+{% if trial_mode %}
+    <!-- Trial Mode Banner -->
+    <div style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.35); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.25rem;">⚠️</span>
+            <div style="text-align: left;">
+                <strong style="color: #fbbf24; font-size: 0.95rem;">Trial Mode – Preview Only</strong>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Your score will not be recorded on the leaderboard.</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; font-size: 0.72rem; padding: 0.25rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(251, 191, 36, 0.25);">Not Recorded</span>
+            <a href="#" onclick="window.close(); return false;" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; text-decoration: none; color: #fff; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">Exit Trial</a>
+        </div>
+    </div>
+{% endif %}
+<div class="glass-panel slide-up" style="max-width: 750px; margin: 0 auto;" id="blanks-game-container">
+    <div class="game-play-header">
+        <div>
+            <h2 style="font-size: 1.75rem;">{{ game.title }}</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="game-score-display" id="live-score">Score: 0 / --</div>
+            <div class="game-timer" id="timer-display">⏱️ 0s</div>
+        </div>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 2rem;">
+        <strong style="color: var(--accent-cyan); font-size: 0.85rem;">Instructions:</strong>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem;">{{ game.instructions }}</p>
+    </div>
+
+    <!-- Deck Items -->
+    <div id="quiz-deck" style="min-height: 200px;">
+        {% for q in questions %}
+            <div class="blank-deck-item fade-in" id="q-block-{{ forloop.counter0 }}" style="display: none;">
+                <div class="mcq-question-card" style="line-height: 2;">
+                    <span style="color: var(--accent-yellow); font-weight: 700;">Question {{ forloop.counter }} of {{ total_questions }}:</span>
+                    <!-- Inline input will be parsed here -->
+                    <div id="blank-question-text-{{ forloop.counter0 }}" style="margin-top: 1rem; font-size: 1.3rem;">
+                        <!-- JS injected html -->
+                    </div>
+                </div>
+
+                <!-- Clue Section -->
+                <div class="glass-panel clue-container-panel" style="margin-top: 1.5rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; color: var(--accent-yellow); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            💡 Hint & Clue System
+                        </h4>
+                        <div id="clue-status-text-{{ forloop.counter0 }}" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">
+                            Clue 1: Auto-reveals in <span id="clue-countdown-{{ forloop.counter0 }}" style="color: var(--accent-cyan);">10</span>s
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-2-{{ forloop.counter0 }}" disabled onclick="requestBlankClue2({{ forloop.counter0 }})" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                            🔒 Unlock Clue 2 (-3 Marks)
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-3-{{ forloop.counter0 }}" disabled onclick="requestBlankClue3({{ forloop.counter0 }})" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                            🔒 Unlock Clue 3 (-3 Marks)
+                        </button>
+                    </div>
+
+                    <div id="display-clue-1-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-cyan); background: rgba(6, 182, 212, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-cyan); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 1 (Free Hint):</strong>
+                        <span id="text-clue-1-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                    <div id="display-clue-2-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-yellow); background: rgba(251, 191, 36, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-yellow); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 2 (Reduced Marks):</strong>
+                        <span id="text-clue-2-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                    <div id="display-clue-3-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-red); background: rgba(244, 63, 94, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm);">
+                        <strong style="color: var(--accent-red); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 3 (Further Reduced Marks):</strong>
+                        <span id="text-clue-3-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                </div>
+
+                <div id="feedback-alert-{{ forloop.counter0 }}" style="margin-top: 1.5rem; display: none;" class="alert">
+                    <!-- Correct/Incorrect Message -->
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn btn-primary" onclick="submitBlankAnswer({{ forloop.counter0 }}, '{{ q.correct_answer|escapejs }}')" id="submit-btn-{{ forloop.counter0 }}">
+                            Check Answer
+                        </button>
+                        <button type="button" class="btn btn-accent" onclick="advanceNextQuestion()" id="next-btn-{{ forloop.counter0 }}" style="display: none;">
+                            {% if forloop.last %}Finish Game ➔{% else %}Next Question ➔{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Results Modal Overlay -->
+<div class="modal-overlay" id="result-modal">
+    <div class="modal-box">
+        <div class="modal-icon-success" id="modal-icon">🏆</div>
+        <h2 class="modal-title" id="modal-title">Completed!</h2>
+        <p class="modal-desc" id="modal-body">Great job! You finished the game.</p>
+        <button type="button" class="btn btn-primary" style="min-width: 150px;" id="modal-continue-btn">
+            Continue ➔
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const totalQ = {{ total_questions }};
+    let currentQ = 0;
+    let score = 0;
+    
+    let timeElapsed = 0;
+    let timerInterval = null;
+
+    let currentQuestionScore = 10;
+    let totalCluesUsed = 0;
+    let clue1Unlocked = false;
+    let clue2Unlocked = false;
+    let clue3Unlocked = false;
+    let clue1Countdown = 10;
+
+    const correctAnswers = [
+        {% for q in questions %}"{{ q.correct_answer|escapejs }}",{% endfor %}
+    ];
+    const blankClue1s = [
+        {% for q in questions %}"{% if q.clue1 %}{{ q.clue1|escapejs }}{% else %}{{ q.clue|default_if_none:''|escapejs }}{% endif %}",{% endfor %}
+    ];
+    const blankClue2s = [
+        {% for q in questions %}"{{ q.clue2|default_if_none:''|escapejs }}",{% endfor %}
+    ];
+    const blankClue3s = [
+        {% for q in questions %}"{{ q.clue3|default_if_none:''|escapejs }}",{% endfor %}
+    ];
+
+    // Sounds
+    function playSuccessSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch(e) {}
+    }
+
+    function playErrorSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch(e) {}
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeElapsed++;
+            document.getElementById('timer-display').innerText = `⏱️ ${timeElapsed}s`;
+
+            // Countdown for Clue 1
+            if (!clue1Unlocked && totalQ > 0) {
+                clue1Countdown--;
+                const countDisplay = document.getElementById(`clue-countdown-${currentQ}`);
+                if (countDisplay) countDisplay.innerText = clue1Countdown;
+                
+                if (clue1Countdown <= 0) {
+                    clue1Unlocked = true;
+                    document.getElementById(`display-clue-1-${currentQ}`).style.display = 'block';
+                    document.getElementById(`clue-status-text-${currentQ}`).innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">🟢 Clue 1 Active</span>`;
+                    
+                    const btn2 = document.getElementById(`btn-clue-2-${currentQ}`);
+                    if (btn2) {
+                        btn2.disabled = false;
+                        btn2.style.opacity = '1';
+                        btn2.style.cursor = 'pointer';
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    // Set up questions by replacing __ with input fields
+    function parseQuestion(index, text) {
+        const textContainer = document.getElementById(`blank-question-text-${index}`);
+        if (!textContainer) return;
+
+        // Replace double underscores with input
+        const inputHtml = `<input type="text" id="blank-input-${index}" class="form-control inline-blank-input" 
+                           style="display: inline-block; width: 170px; border-bottom: 2px solid var(--accent-yellow); 
+                           border-top: none; border-left: none; border-right: none; border-radius: 0; background: transparent; 
+                           padding: 0 0.5rem; text-align: center; color: white; font-weight: 700; outline: none; font-size: 1.25rem;" 
+                           placeholder="Fill in blank" required autocomplete="off">`;
+        
+        const finalHtml = text.replace(/__/g, inputHtml);
+        textContainer.innerHTML = finalHtml;
+
+        // Bind enter key press to check answer or advance
+        setTimeout(() => {
+            const inputEl = document.getElementById(`blank-input-${index}`);
+            if (inputEl) {
+                inputEl.focus();
+                inputEl.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const submitBtn = document.getElementById(`submit-btn-${index}`);
+                        if (submitBtn && !submitBtn.disabled) {
+                            submitBlankAnswer(index, correctAnswers[index]);
+                        } else {
+                            advanceNextQuestion();
+                        }
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    function advanceNextQuestion() {
+        currentQ++;
+        if (currentQ < totalQ) {
+            showQuestion(currentQ);
+        } else {
+            clearInterval(timerInterval);
+            if (score === (totalQ * 10) && window.triggerConfetti) {
+                window.triggerConfetti();
+            }
+            submitScoreAJAX();
+        }
+    }
+
+    function showQuestion(index) {
+        for (let i = 0; i < totalQ; i++) {
+            const block = document.getElementById(`q-block-${i}`);
+            if (block) block.style.display = 'none';
+        }
+        
+        const activeBlock = document.getElementById(`q-block-${index}`);
+        if (activeBlock) {
+            activeBlock.style.display = 'block';
+            const input = document.getElementById(`blank-input-${index}`);
+            if (input) input.focus();
+
+            // Reset clue state
+            currentQuestionScore = 10;
+            clue1Unlocked = false;
+            clue2Unlocked = false;
+            clue3Unlocked = false;
+            clue1Countdown = 10;
+
+            // Load clue 1 text
+            const answer = correctAnswers[index].trim();
+            const lengthHint = `The answer has ${answer.length} letters.`;
+            const customClue1 = blankClue1s[index];
+            document.getElementById(`text-clue-1-${index}`).innerText = customClue1 || lengthHint;
+        }
+    }
+
+    function requestBlankClue2(index) {
+        if (!clue1Unlocked || clue2Unlocked) return;
+        
+        const confirmReveal = confirm("If you view this clue, your mark will be reduced. Do you want to continue?");
+        if (confirmReveal) {
+            clue2Unlocked = true;
+            currentQuestionScore = 7;
+            totalCluesUsed++;
+            
+            const answer = correctAnswers[index].trim();
+            const firstChar = answer.charAt(0);
+            
+            const customClue2 = blankClue2s[index];
+            document.getElementById(`text-clue-2-${index}`).innerText = customClue2 || `Starts with the letter '${firstChar.toUpperCase()}'.`;
+            document.getElementById(`display-clue-2-${index}`).style.display = 'block';
+            
+            const btn2 = document.getElementById(`btn-clue-2-${index}`);
+            btn2.disabled = true;
+            btn2.style.opacity = '0.5';
+            btn2.style.cursor = 'not-allowed';
+            btn2.innerText = "🔓 Clue 2 Unlocked";
+            
+            const btn3 = document.getElementById(`btn-clue-3-${index}`);
+            btn3.disabled = false;
+            btn3.style.opacity = '1';
+            btn3.style.cursor = 'pointer';
+        }
+    }
+
+    function requestBlankClue3(index) {
+        if (!clue2Unlocked || clue3Unlocked) return;
+        
+        const confirmReveal = confirm("This will reduce more marks. Continue?");
+        if (confirmReveal) {
+            clue3Unlocked = true;
+            currentQuestionScore = 4;
+            totalCluesUsed++;
+            
+            const answer = correctAnswers[index].trim();
+            const firstChar = answer.charAt(0);
+            const lastChar = answer.charAt(answer.length - 1);
+            
+            const customClue3 = blankClue3s[index];
+            document.getElementById(`text-clue-3-${index}`).innerText = customClue3 || `Starts with '${firstChar.toUpperCase()}' and ends with '${lastChar.toUpperCase()}'.`;
+            document.getElementById(`display-clue-3-${index}`).style.display = 'block';
+            
+            const btn3 = document.getElementById(`btn-clue-3-${index}`);
+            btn3.disabled = true;
+            btn3.style.opacity = '0.5';
+            btn3.style.cursor = 'not-allowed';
+            btn3.innerText = "🔓 Clue 3 Unlocked";
+            
+            // Auto fill first letter of the input field
+            const inputEl = document.getElementById(`blank-input-${index}`);
+            if (inputEl && !inputEl.value) {
+                inputEl.value = firstChar;
+            }
+        }
+    }
+
+    function showFloatingEmoji(emoji) {
+        const div = document.createElement('div');
+        div.className = 'floating-emoji-effect';
+        div.innerText = emoji;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 1800);
+    }
+
+    function submitBlankAnswer(qIndex, correctAnswer) {
+        const inputEl = document.getElementById(`blank-input-${qIndex}`);
+        const submitBtn = document.getElementById(`submit-btn-${qIndex}`);
+        const nextBtn = document.getElementById(`next-btn-${qIndex}`);
+        const feedbackAlert = document.getElementById(`feedback-alert-${qIndex}`);
+
+        if (!inputEl) return;
+        
+        const userAns = inputEl.value.trim().toUpperCase();
+        const correctAns = correctAnswer.trim().toUpperCase();
+
+        if (!userAns) {
+            alert("Please fill in the blank before checking!");
+            return;
+        }
+
+        // Set input read-only so it keeps focus for enter key press propagation
+        inputEl.readOnly = true;
+        inputEl.style.pointerEvents = 'none';
+        submitBtn.disabled = true;
+        submitBtn.style.display = 'none';
+        if (nextBtn) {
+            nextBtn.style.display = 'block';
+            nextBtn.focus();
+        }
+
+        let isCorrect = (userAns === correctAns);
+
+        if (isCorrect) {
+            // Correct
+            score += currentQuestionScore;
+            inputEl.style.borderBottomColor = 'var(--accent-green)';
+            inputEl.style.color = 'var(--accent-green)';
+            
+            feedbackAlert.className = 'alert alert-success slide-up';
+            feedbackAlert.innerHTML = '<span>✅</span> Correct Answer!';
+            feedbackAlert.style.display = 'flex';
+            
+            playSuccessSound();
+            showFloatingEmoji('😊');
+            
+            // Automatically advance after delay when correct
+            setTimeout(() => {
+                advanceNextQuestion();
+            }, 1800);
+        } else {
+            // Wrong
+            inputEl.style.borderBottomColor = 'var(--accent-red)';
+            inputEl.style.color = 'var(--accent-red)';
+            
+            feedbackAlert.className = 'alert alert-danger slide-up';
+            feedbackAlert.innerHTML = `<span>❌</span> Incorrect. Correct answer: <strong>${correctAnswer}</strong>`;
+            feedbackAlert.style.display = 'flex';
+            
+            const container = document.getElementById('blanks-game-container');
+            container.classList.add('shake');
+            playErrorSound();
+            showFloatingEmoji('😢');
+            
+            setTimeout(() => {
+                container.classList.remove('shake');
+            }, 500);
+        }
+
+        // Update score display on screen immediately
+        document.getElementById('live-score').innerText = `Score: ${score} / ${totalQ * 10}`;
+    }
+
+    function submitScoreAJAX() {
+        const formData = new FormData();
+        formData.append('score', score);
+        formData.append('max_score', totalQ * 10);
+        formData.append('clues_used', totalCluesUsed);
+        formData.append('time_taken', timeElapsed);
+
+        fetch("{% url 'submit_score' game.id %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResultModal(data.attempt_id);
+            } else {
+                alert("Error logging attempt. Retrying...");
+            }
+        });
+    }
+
+    function showResultModal(attemptId) {
+        const overlay = document.getElementById('result-modal');
+        const icon = document.getElementById('modal-icon');
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        const continueBtn = document.getElementById('modal-continue-btn');
+
+        if (score === (totalQ * 10)) {
+            icon.innerHTML = '🏆';
+            icon.className = 'modal-icon-success';
+            title.innerText = 'Perfect Score!';
+            title.style.color = 'var(--accent-green)';
+        } else {
+            icon.innerHTML = '✏️';
+            icon.className = 'modal-icon-success';
+            icon.style.borderColor = 'var(--accent-yellow)';
+            icon.style.color = 'var(--accent-yellow)';
+            title.innerText = 'Completed!';
+            title.style.color = 'var(--accent-yellow)';
+        }
+        
+        body.innerHTML = `You completed the Blanks! <br><strong>Score: ${score} / ${totalQ * 10}</strong>`;
+        
+        continueBtn.onclick = function() {
+            window.location.href = `/student/result/${attemptId}/`;
+        };
+        
+        overlay.classList.add('active');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('live-score').innerText = `Score: 0 / ${totalQ * 10}`;
+        // Parse all question inputs
+        {% for q in questions %}
+            parseQuestion({{ forloop.counter0 }}, "{{ q.question_text|escapejs }}");
+            document.getElementById("submit-btn-{{ forloop.counter0 }}").setAttribute('data-correct', "{{ q.correct_answer|escapejs }}");
+        {% endfor %}
+
+        if (totalQ > 0) {
+            showQuestion(0);
+            startTimer();
+        } else {
+            alert("No questions found.");
+            window.location.href = "{% url 'student_dashboard' %}";
+        }
+    });
+</script>
+{% endblock %}

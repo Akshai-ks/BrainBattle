@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block title %}Play MCQ - EduPlay{% endblock %}
+
+{% block content %}
+{% if trial_mode %}
+    <!-- Trial Mode Banner -->
+    <div style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.35); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.25rem;">⚠️</span>
+            <div style="text-align: left;">
+                <strong style="color: #fbbf24; font-size: 0.95rem;">Trial Mode – Preview Only</strong>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Your score will not be recorded on the leaderboard.</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; font-size: 0.72rem; padding: 0.25rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(251, 191, 36, 0.25);">Not Recorded</span>
+            <a href="#" onclick="window.close(); return false;" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; text-decoration: none; color: #fff; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">Exit Trial</a>
+        </div>
+    </div>
+{% endif %}
+<div class="glass-panel slide-up" style="max-width: 750px; margin: 0 auto;" id="mcq-game-container">
+    <div class="game-play-header">
+        <div>
+            <h2 style="font-size: 1.75rem;">{{ game.title }}</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="game-score-display" id="live-score">Score: 0 / --</div>
+            <div class="game-timer" id="timer-display">⏱️ 0s</div>
+        </div>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 2rem;">
+        <strong style="color: var(--accent-cyan); font-size: 0.85rem;">Instructions:</strong>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem;">{{ game.instructions }}</p>
+    </div>
+
+    <!-- Questions Container -->
+    <div id="quiz-deck" style="min-height: 250px;">
+        {% for q in questions %}
+            <div class="mcq-deck-item fade-in" id="q-block-{{ forloop.counter0 }}" style="display: none;">
+                <div class="mcq-question-card">
+                    <span style="color: var(--accent-purple); font-weight: 700;">Question {{ forloop.counter }} of {{ total_questions }}:</span>
+                    <p style="margin-top: 0.5rem;">{{ q.question_text }}</p>
+                </div>
+                
+                <div class="mcq-options-grid" id="options-grid-{{ forloop.counter0 }}">
+                    <div class="mcq-option-card" onclick="selectOption(this, 'A', {{ forloop.counter0 }})">
+                        <div class="mcq-option-marker">A</div>
+                        <div class="mcq-option-text">{{ q.option_a }}</div>
+                    </div>
+                    <div class="mcq-option-card" onclick="selectOption(this, 'B', {{ forloop.counter0 }})">
+                        <div class="mcq-option-marker">B</div>
+                        <div class="mcq-option-text">{{ q.option_b }}</div>
+                    </div>
+                    <div class="mcq-option-card" onclick="selectOption(this, 'C', {{ forloop.counter0 }})">
+                        <div class="mcq-option-marker">C</div>
+                        <div class="mcq-option-text">{{ q.option_c }}</div>
+                    </div>
+                    <div class="mcq-option-card" onclick="selectOption(this, 'D', {{ forloop.counter0 }})">
+                        <div class="mcq-option-marker">D</div>
+                        <div class="mcq-option-text">{{ q.option_d }}</div>
+                    </div>
+                </div>
+
+                <!-- Clue Section -->
+                <div class="glass-panel clue-container-panel" style="margin-top: 1.5rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; color: var(--accent-yellow); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            💡 Hint & Clue System
+                        </h4>
+                        <div id="clue-status-text-{{ forloop.counter0 }}" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">
+                            Clue 1: Auto-reveals in <span id="clue-countdown-{{ forloop.counter0 }}" style="color: var(--accent-cyan);">10</span>s
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-2-{{ forloop.counter0 }}" disabled onclick="requestMCQClue2({{ forloop.counter0 }}, '{{ q.correct_option }}')" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                            🔒 Unlock Clue 2 (-3 Marks)
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-clue-3-{{ forloop.counter0 }}" disabled onclick="requestMCQClue3({{ forloop.counter0 }}, '{{ q.correct_option }}')" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; opacity: 0.5; cursor: not-allowed;">
+                            🔒 Unlock Clue 3 (-3 Marks)
+                        </button>
+                    </div>
+
+                    <div id="display-clue-1-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-cyan); background: rgba(6, 182, 212, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-cyan); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 1 (Free Hint):</strong>
+                        <span id="text-clue-1-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                    <div id="display-clue-2-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-yellow); background: rgba(251, 191, 36, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+                        <strong style="color: var(--accent-yellow); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 2 (Reduced Marks):</strong>
+                        <span id="text-clue-2-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                    <div id="display-clue-3-{{ forloop.counter0 }}" class="clue-box" style="display: none; border-left: 3px solid var(--accent-red); background: rgba(244, 63, 94, 0.03); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm);">
+                        <strong style="color: var(--accent-red); font-size: 0.85rem; display: block; margin-bottom: 0.2rem;">💡 Clue 3 (Further Reduced Marks):</strong>
+                        <span id="text-clue-3-{{ forloop.counter0 }}" style="font-size: 0.95rem; color: var(--text-primary);">--</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" onclick="submitMCQAnswer({{ forloop.counter0 }}, '{{ q.correct_option }}')" id="submit-btn-{{ forloop.counter0 }}">
+                        Submit Question Answer
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Results Modal Overlay -->
+<div class="modal-overlay" id="result-modal">
+    <div class="modal-box">
+        <div class="modal-icon-success" id="modal-icon">🏆</div>
+        <h2 class="modal-title" id="modal-title">Quiz Finished!</h2>
+        <p class="modal-desc" id="modal-body">Great job! You completed all questions.</p>
+        <button type="button" class="btn btn-primary" style="min-width: 150px;" id="modal-continue-btn">
+            Continue ➔
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const totalQ = {{ total_questions }};
+    let currentQ = 0;
+    let selectedAns = null;
+    let score = 0;
+    
+    let timeElapsed = 0;
+    let timerInterval = null;
+
+    let currentQuestionScore = 10;
+    let totalCluesUsed = 0;
+    let clue1Unlocked = false;
+    let clue2Unlocked = false;
+    let clue3Unlocked = false;
+    let clue1Countdown = 10;
+
+    const correctOptions = [
+        {% for q in questions %}'{{ q.correct_option }}',{% endfor %}
+    ];
+    const mcqClue1s = [
+        {% for q in questions %}"{{ q.clue1|default_if_none:''|escapejs }}",{% endfor %}
+    ];
+    const mcqClue2s = [
+        {% for q in questions %}"{{ q.clue2|default_if_none:''|escapejs }}",{% endfor %}
+    ];
+    const mcqClue3s = [
+        {% for q in questions %}"{{ q.clue3|default_if_none:''|escapejs }}",{% endfor %}
+    ];
+
+    // Synthesize Audio using Web Audio API
+    function playSuccessSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch(e) {}
+    }
+
+    function playErrorSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch(e) {}
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeElapsed++;
+            document.getElementById('timer-display').innerText = `⏱️ ${timeElapsed}s`;
+
+            // Countdown for Clue 1
+            if (!clue1Unlocked && totalQ > 0) {
+                clue1Countdown--;
+                const countDisplay = document.getElementById(`clue-countdown-${currentQ}`);
+                if (countDisplay) countDisplay.innerText = clue1Countdown;
+                
+                if (clue1Countdown <= 0) {
+                    clue1Unlocked = true;
+                    document.getElementById(`display-clue-1-${currentQ}`).style.display = 'block';
+                    document.getElementById(`clue-status-text-${currentQ}`).innerHTML = `<span style="color: var(--accent-green); font-weight: 700;">🟢 Clue 1 Active</span>`;
+                    
+                    const btn2 = document.getElementById(`btn-clue-2-${currentQ}`);
+                    if (btn2) {
+                        btn2.disabled = false;
+                        btn2.style.opacity = '1';
+                        btn2.style.cursor = 'pointer';
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    function showQuestion(index) {
+        // Hide all questions
+        for (let i = 0; i < totalQ; i++) {
+            const block = document.getElementById(`q-block-${i}`);
+            if (block) block.style.display = 'none';
+        }
+        
+        // Show selected question
+        const activeBlock = document.getElementById(`q-block-${index}`);
+        if (activeBlock) {
+            activeBlock.style.display = 'block';
+            selectedAns = null;
+
+            // Reset Clue state for new question
+            currentQuestionScore = 10;
+            clue1Unlocked = false;
+            clue2Unlocked = false;
+            clue3Unlocked = false;
+            clue1Countdown = 10;
+
+            // Load clue 1 text
+            const customClue1 = mcqClue1s[index];
+            if (customClue1) {
+                document.getElementById(`text-clue-1-${index}`).innerText = customClue1;
+            } else {
+                const correctOpt = correctOptions[index];
+                const optionsList = ['A', 'B', 'C', 'D'];
+                const wrongOptions = optionsList.filter(o => o !== correctOpt);
+                const randomWrong = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+                document.getElementById(`text-clue-1-${index}`).innerText = `The correct option is NOT ${randomWrong}.`;
+            }
+        }
+    }
+
+    function requestMCQClue2(index, correctOpt) {
+        if (!clue1Unlocked || clue2Unlocked) return;
+        
+        const confirmReveal = confirm("If you view this clue, your mark will be reduced. Do you want to continue?");
+        if (confirmReveal) {
+            clue2Unlocked = true;
+            currentQuestionScore = 7;
+            totalCluesUsed++;
+            
+            const optionsList = ['A', 'B', 'C', 'D'];
+            const wrongOptions = optionsList.filter(o => o !== correctOpt);
+            const wrongToFade = wrongOptions[0];
+            
+            const grid = document.getElementById(`options-grid-${index}`);
+            const cards = grid.querySelectorAll('.mcq-option-card');
+            cards.forEach(c => {
+                if (c.querySelector('.mcq-option-marker').innerText === wrongToFade) {
+                    c.classList.add('faded');
+                }
+            });
+            
+            const customClue2 = mcqClue2s[index];
+            document.getElementById(`text-clue-2-${index}`).innerText = customClue2 || `Option ${wrongToFade} is incorrect.`;
+            document.getElementById(`display-clue-2-${index}`).style.display = 'block';
+            
+            const btn2 = document.getElementById(`btn-clue-2-${index}`);
+            btn2.disabled = true;
+            btn2.style.opacity = '0.5';
+            btn2.style.cursor = 'not-allowed';
+            btn2.innerText = "🔓 Clue 2 Unlocked";
+            
+            const btn3 = document.getElementById(`btn-clue-3-${index}`);
+            btn3.disabled = false;
+            btn3.style.opacity = '1';
+            btn3.style.cursor = 'pointer';
+        }
+    }
+
+    function requestMCQClue3(index, correctOpt) {
+        if (!clue2Unlocked || clue3Unlocked) return;
+        
+        const confirmReveal = confirm("This will reduce more marks. Continue?");
+        if (confirmReveal) {
+            clue3Unlocked = true;
+            currentQuestionScore = 4;
+            totalCluesUsed++;
+            
+            const optionsList = ['A', 'B', 'C', 'D'];
+            const wrongOptions = optionsList.filter(o => o !== correctOpt);
+            const wrongToFade = wrongOptions[1];
+            
+            const grid = document.getElementById(`options-grid-${index}`);
+            const cards = grid.querySelectorAll('.mcq-option-card');
+            cards.forEach(c => {
+                if (c.querySelector('.mcq-option-marker').innerText === wrongToFade) {
+                    c.classList.add('faded');
+                }
+            });
+            
+            const customClue3 = mcqClue3s[index];
+            document.getElementById(`text-clue-3-${index}`).innerText = customClue3 || `Option ${wrongToFade} is also incorrect. 50/50 choice remaining.`;
+            document.getElementById(`display-clue-3-${index}`).style.display = 'block';
+            
+            const btn3 = document.getElementById(`btn-clue-3-${index}`);
+            btn3.disabled = true;
+            btn3.style.opacity = '0.5';
+            btn3.style.cursor = 'not-allowed';
+            btn3.innerText = "🔓 Clue 3 Unlocked";
+        }
+    }
+
+    function selectOption(cardEl, option, qIndex) {
+        // Get all options in this grid
+        const grid = document.getElementById(`options-grid-${qIndex}`);
+        const cards = grid.querySelectorAll('.mcq-option-card');
+        
+        // Check if question is already answered/disabled
+        if (cards[0].style.pointerEvents === 'none') return;
+
+        cards.forEach(c => c.classList.remove('selected'));
+        cardEl.classList.add('selected');
+        selectedAns = option;
+    }
+
+    function submitMCQAnswer(qIndex, correctOption) {
+        if (!selectedAns) {
+            alert("Please select an option before submitting!");
+            return;
+        }
+
+        const grid = document.getElementById(`options-grid-${qIndex}`);
+        const cards = grid.querySelectorAll('.mcq-option-card');
+        const submitBtn = document.getElementById(`submit-btn-${qIndex}`);
+
+        // Disable options & submit button
+        cards.forEach(c => c.style.pointerEvents = 'none');
+        submitBtn.disabled = true;
+
+        let selectedCard = null;
+        let correctCard = null;
+
+        // Find selected card and correct card
+        cards.forEach(c => {
+            const marker = c.querySelector('.mcq-option-marker').innerText;
+            if (marker === selectedAns) selectedCard = c;
+            if (marker === correctOption) correctCard = c;
+        });
+
+        if (selectedAns === correctOption) {
+            // Correct Answer
+            score += currentQuestionScore;
+            selectedCard.style.borderColor = 'var(--accent-green)';
+            selectedCard.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+            document.getElementById('live-score').innerText = `Score: ${score} / ${totalQ * 10}`;
+            playSuccessSound();
+        } else {
+            // Wrong Answer
+            selectedCard.style.borderColor = 'var(--accent-red)';
+            selectedCard.style.backgroundColor = 'rgba(244, 63, 94, 0.15)';
+            
+            correctCard.style.borderColor = 'var(--accent-green)';
+            correctCard.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+            
+            // Trigger Shake animation on the question container
+            const container = document.getElementById('mcq-game-container');
+            container.classList.add('shake');
+            playErrorSound();
+            
+            setTimeout(() => {
+                container.classList.remove('shake');
+            }, 500);
+        }
+
+        // Proceed to next question after delay
+        setTimeout(() => {
+            currentQ++;
+            if (currentQ < totalQ) {
+                showQuestion(currentQ);
+            } else {
+                // End of quiz
+                clearInterval(timerInterval);
+                if (score === totalQ && window.triggerConfetti) {
+                    window.triggerConfetti();
+                }
+                submitScoreAJAX();
+            }
+        }, 1800);
+    }
+
+    function submitScoreAJAX() {
+        const formData = new FormData();
+        formData.append('score', score);
+        formData.append('max_score', totalQ * 10);
+        formData.append('clues_used', totalCluesUsed);
+        formData.append('time_taken', timeElapsed);
+
+        fetch("{% url 'submit_score' game.id %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResultModal(data.attempt_id);
+            } else {
+                alert("Error saving score. Please retry.");
+            }
+        });
+    }
+
+    function showResultModal(attemptId) {
+        const overlay = document.getElementById('result-modal');
+        const icon = document.getElementById('modal-icon');
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        const continueBtn = document.getElementById('modal-continue-btn');
+
+        if (score === totalQ) {
+            icon.innerHTML = '🏆';
+            icon.className = 'modal-icon-success';
+            title.innerText = 'Perfect Score!';
+            title.style.color = 'var(--accent-green)';
+        } else {
+            icon.innerHTML = '📝';
+            icon.className = 'modal-icon-success';
+            icon.style.borderColor = 'var(--accent-purple)';
+            icon.style.color = 'var(--accent-purple)';
+            title.innerText = 'Quiz Completed';
+            title.style.color = 'var(--accent-purple)';
+        }
+        
+        body.innerHTML = `You completed the quiz! <br><strong>Score: ${score} / ${totalQ}</strong>`;
+        
+        continueBtn.onclick = function() {
+            window.location.href = `/student/result/${attemptId}/`;
+        };
+        
+        overlay.classList.add('active');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('live-score').innerText = `Score: 0 / ${totalQ * 10}`;
+        if (totalQ > 0) {
+            showQuestion(0);
+            startTimer();
+        } else {
+            alert("This game has no questions configured yet. Redirecting to dashboard.");
+            window.location.href = "{% url 'student_dashboard' %}";
+        }
+    });
+</script>
+{% endblock %}

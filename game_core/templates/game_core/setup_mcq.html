@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup MCQ Questions - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" style="max-width: 800px; margin: 2rem auto;" id="setup-mcq-panel">
+    <h2 class="form-title" style="color: var(--accent-cyan);">Configure MCQ Questions - {{ game.title }}</h2>
+    <p style="color: var(--text-secondary); text-align: center; margin-bottom: 2rem; font-size: 0.95rem;">
+        💡 <strong>{% if is_student %}Creator{% else %}Teacher{% endif %} Tip:</strong> You can configure between <strong>5 to 10 questions</strong> to adapt the game
+        to different class sessions, topics, and difficulty levels.
+    </p>
+
+    <form method="POST" id="setup-mcq-form">
+        {% csrf_token %}
+
+        <div id="questions-list" style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Dynamic Questions Added Here -->
+        </div>
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-secondary" id="add-question-btn">
+                ➕ Add Another Question
+            </button>
+            <button type="submit" class="btn btn-primary" id="save-mcq-btn" style="font-weight: 700; background: var(--accent-green); border-color: var(--accent-green); color: white;">
+                {% if is_student %}Save Questions ➔{% else %}Save & Publish MCQ Game{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let qCount = 0;
+
+    function addQuestion(qText = '', optA = '', optB = '', optC = '', optD = '', correct = 'A', clue1 = '', clue2 = '', clue3 = '') {
+        qCount++;
+        const container = document.getElementById('questions-list');
+
+        const card = document.createElement('div');
+        card.className = 'question-builder-card fade-in';
+        card.id = `q-card-${qCount}`;
+
+        card.innerHTML = `
+            <span class="question-num-badge">Question ${qCount}</span>
+            <button type="button" class="btn btn-danger btn-sm" style="position: absolute; top: 15px; right: 15px; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="removeQuestion(${qCount})">Remove</button>
+            
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label>Question Text</label>
+                <input type="text" name="q_text" class="form-control" placeholder="E.g., What is the main source of energy for the Earth?" value="${qText}" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Option A</label>
+                    <input type="text" name="opt_a" class="form-control" placeholder="E.g., Wind" value="${optA}" required>
+                </div>
+                <div class="form-group">
+                    <label>Option B</label>
+                    <input type="text" name="opt_b" class="form-control" placeholder="E.g., Water" value="${optB}" required>
+                </div>
+                <div class="form-group">
+                    <label>Option C</label>
+                    <input type="text" name="opt_c" class="form-control" placeholder="E.g., The Sun" value="${optC}" required>
+                </div>
+                <div class="form-group">
+                    <label>Option D</label>
+                    <input type="text" name="opt_d" class="form-control" placeholder="E.g., Geothermal" value="${optD}" required>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 1rem; max-width: 250px;">
+                <label>Correct Answer Option</label>
+                <select name="correct" class="form-control">
+                    <option value="A" ${correct === 'A' ? 'selected' : ''}>Option A</option>
+                    <option value="B" ${correct === 'B' ? 'selected' : ''}>Option B</option>
+                    <option value="C" ${correct === 'C' ? 'selected' : ''}>Option C</option>
+                    <option value="D" ${correct === 'D' ? 'selected' : ''}>Option D</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 1rem;">
+                <div class="form-group">
+                    <label>Clue 1 (Free Hint)</label>
+                    <input type="text" name="clue1" class="form-control" placeholder="E.g., Hint text (Optional)" value="${clue1}">
+                </div>
+                <div class="form-group">
+                    <label>Clue 2 (Deduction)</label>
+                    <input type="text" name="clue2" class="form-control" placeholder="E.g., Hint text (Optional)" value="${clue2}">
+                </div>
+                <div class="form-group">
+                    <label>Clue 3 (More Deduction)</label>
+                    <input type="text" name="clue3" class="form-control" placeholder="E.g., Hint text (Optional)" value="${clue3}">
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+    }
+
+    function removeQuestion(index) {
+        const card = document.getElementById(`q-card-${index}`);
+        if (card) {
+            card.remove();
+            reindexQuestions();
+        }
+    }
+
+    function reindexQuestions() {
+        const cards = document.querySelectorAll('.question-builder-card');
+        qCount = 0;
+        cards.forEach((card) => {
+            qCount++;
+            card.id = `q-card-${qCount}`;
+            const badge = card.querySelector('.question-num-badge');
+            badge.innerText = `Question ${qCount}`;
+
+            const deleteBtn = card.querySelector('button[type="button"]');
+            deleteBtn.setAttribute('onclick', `removeQuestion(${qCount})`);
+        });
+    }
+
+    document.getElementById('add-question-btn').addEventListener('click', () => {
+        addQuestion();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        {% if game.mcq_questions.exists %}
+        {% for q in game.mcq_questions.all %}
+        addQuestion(
+            "{{ q.question_text|escapejs }}",
+            "{{ q.option_a|escapejs }}",
+            "{{ q.option_b|escapejs }}",
+            "{{ q.option_c|escapejs }}",
+            "{{ q.option_d|escapejs }}",
+            "{{ q.correct_option }}",
+            "{{ q.clue1|default_if_none:''|escapejs }}",
+            "{{ q.clue2|default_if_none:''|escapejs }}",
+            "{{ q.clue3|default_if_none:''|escapejs }}"
+        );
+        {% endfor %}
+        {% else %}
+        for (let i = 0; i < 5; i++) {
+            addQuestion();
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}

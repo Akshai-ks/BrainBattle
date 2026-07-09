@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Student Games - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="review-student-games-section">
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div class="dashboard-title">
+            <a href="{% url 'teacher_dashboard' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Control Hub
+            </a>
+            <h1>🎓 Student Game Submissions Approval Queue</h1>
+            <p>Review gamified learning challenges designed by students, inspect questions, and publish approved games online.</p>
+        </div>
+    </div>
+
+    <!-- Review Categories Grid/Tab Selectors -->
+    <div class="glass-panel" style="padding: 1.25rem; margin-bottom: 2rem; display: flex; gap: 1rem; border-color: rgba(255,255,255,0.05); flex-wrap: wrap;">
+        <button onclick="switchTab('pending')" id="tab-btn-pending" class="tab-button active">
+            ⏳ Pending Approval ({{ pending_games|length }})
+        </button>
+        <button onclick="switchTab('approved')" id="tab-btn-approved" class="tab-button">
+            ✅ Published & Approved ({{ approved_games|length }})
+        </button>
+        <button onclick="switchTab('rejected')" id="tab-btn-rejected" class="tab-button">
+            ❌ Rejected Drafts ({{ rejected_games|length }})
+        </button>
+    </div>
+
+    <!-- TAB: Pending Approval -->
+    <div id="tab-content-pending" class="tab-content-pane active">
+        {% if pending_games %}
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-2col-md">
+                {% for game in pending_games %}
+                    <div class="review-game-card pending" style="border-left: 4px solid #facc15;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.25rem;">{{ game.title }}</h3>
+                            <span class="badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.3); padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 700;">Pending Review</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Designed by: <strong style="color: var(--accent-cyan);">{{ game.created_by_student.name }}</strong> ({{ game.created_by_student.register_number }})</p>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">{{ game.instructions|default:"No instructions provided." }}</p>
+                        
+                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                            <span>Type: <strong>{{ game.get_game_type_display }}</strong></span>
+                        </div>
+
+                        <!-- Action Controls Row -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <a href="{% url 'play_game' game.id %}?trial=true" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; font-size: 0.8rem; padding: 0.5rem;">
+                                    👁️ Play & Preview Game
+                                </a>
+                                <a href="{% url 'approve_student_game' game.id %}" class="btn btn-success btn-sm" style="flex: 1; text-align: center; font-size: 0.8rem; padding: 0.5rem; background: var(--accent-green); font-weight: 700; color: white;" onclick="return confirm('Approve this game and publish it for all students?');">
+                                    ✅ Approve & Publish
+                                </a>
+                            </div>
+
+                            <!-- Reject Form Inline Dropdown -->
+                            <form method="POST" action="{% url 'reject_student_game' game.id %}" style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(0,0,0,0.15); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid rgba(239, 68, 68, 0.1);">
+                                {% csrf_token %}
+                                <input type="text" name="rejection_reason" placeholder="Input rejection feedback (optional)..." style="width: 100%; padding: 0.4rem 0.65rem; border-radius: 4px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: #fff; font-size: 0.82rem;">
+                                <button type="submit" class="btn btn-danger btn-sm" style="width: 100%; padding: 0.4rem; font-size: 0.8rem; background: var(--accent-red); font-weight: 700; color: white;">
+                                    ❌ Reject Game Submission
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align: center; padding: 4rem 1rem; border: 1px dashed var(--border-color);">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 1rem;">⏳</span>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 1.05rem;">No student games are currently pending review.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- TAB: Published & Approved -->
+    <div id="tab-content-approved" class="tab-content-pane">
+        {% if approved_games %}
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-2col-md">
+                {% for game in approved_games %}
+                    <div class="review-game-card approved" style="border-left: 4px solid #4ade80;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.25rem;">{{ game.title }}</h3>
+                            <span class="badge" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 700;">Approved</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Designed by: <strong style="color: var(--accent-cyan);">{{ game.created_by_student.name }}</strong></p>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">{{ game.instructions|default:"No instructions provided." }}</p>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem;">
+                                <a href="{% url 'play_game' game.id %}?trial=true" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; font-size: 0.8rem; padding: 0.4rem;">
+                                    👁️ Play & Preview
+                                </a>
+                            <form method="POST" action="{% url 'reject_student_game' game.id %}" style="flex: 1;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" style="width: 100%; text-align: center; font-size: 0.8rem; padding: 0.4rem; background: var(--accent-red); color: white;" onclick="return confirm('Recall/unpublish this game?');">
+                                    🚫 Unpublish
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align: center; padding: 4rem 1rem; border: 1px dashed var(--border-color);">
+                <p style="color: var(--text-secondary); margin: 0;">No student-designed games are currently approved and published.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- TAB: Rejected Drafts -->
+    <div id="tab-content-rejected" class="tab-content-pane">
+        {% if rejected_games %}
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-2col-md">
+                {% for game in rejected_games %}
+                    <div class="review-game-card rejected" style="border-left: 4px solid #f87171;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <h3 style="margin: 0; color: #fff; font-size: 1.25rem; opacity: 0.75;">{{ game.title }}</h3>
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 700;">Rejected</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Designed by: <strong>{{ game.created_by_student.name }}</strong></p>
+                        {% if game.rejection_reason %}
+                            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; color: #fca5a5; margin-bottom: 1rem; line-height: 1.45;">
+                                💬 Feedback: {{ game.rejection_reason }}
+                            </div>
+                        {% endif %}
+                        <div style="display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem;">
+                            <a href="{% url 'approve_student_game' game.id %}" class="btn btn-success btn-sm" style="width: 100%; text-align: center; font-size: 0.8rem; padding: 0.4rem; background: var(--accent-green); color: white;" onclick="return confirm('Re-approve and publish this student game?');">
+                                Re-Approve & Publish ✅
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align: center; padding: 4rem 1rem; border: 1px dashed var(--border-color);">
+                <p style="color: var(--text-secondary); margin: 0;">No student games are currently in the rejected drafts log.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content-pane').forEach(pane => pane.classList.remove('active'));
+        
+        document.getElementById('tab-btn-' + tabId).classList.add('active');
+        document.getElementById('tab-content-' + tabId).classList.add('active');
+    }
+</script>
+
+<style>
+    .tab-button {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+    }
+    
+    .tab-button:hover {
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+    }
+    
+    .tab-button.active {
+        background: var(--accent-purple);
+        color: #fff;
+    }
+    
+    .tab-content-pane {
+        display: none;
+    }
+    
+    .tab-content-pane.active {
+        display: block;
+    }
+
+    .review-game-card {
+        background: rgba(30, 41, 59, 0.35);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        transition: all 0.25s ease;
+    }
+    
+    .review-game-card:hover {
+        transform: translateY(-3px);
+        background: rgba(30, 41, 59, 0.55);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

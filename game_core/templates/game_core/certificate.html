@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate of Achievement - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 950px; margin: 0 auto; text-align: center;">
+    
+    <!-- Action buttons (hidden during print) -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;" class="no-print">
+        <a href="{% url 'game_result' attempt.id %}" class="btn btn-secondary">
+            ◀ Back to Result
+        </a>
+        <button type="button" class="btn btn-accent" onclick="window.print()" id="print-cert-btn">
+            🖨️ Print / Save Certificate as PDF
+        </button>
+    </div>
+
+    <!-- Certificate Layout Box -->
+    <div class="certificate-container" id="certificate-canvas">
+        <div class="certificate-border-outer">
+            <div class="certificate-border-inner">
+                <div class="cert-header">Certificate of Completion</div>
+                <div class="cert-title">Academic Achievement Award</div>
+                
+                <div class="cert-statement">This certificate is proudly awarded to</div>
+                
+                <div class="cert-name" id="student-name-cert">{{ attempt.student.name }}</div>
+                
+                <div class="cert-details">
+                    for demonstrating exceptional conceptual understanding and securing a perfect score of
+                    <strong style="color: #1e293b;">{{ attempt.score }} out of {{ attempt.max_score }}</strong> on the educational activity
+                    <strong style="color: #8b5cf6;">"{{ attempt.game.title }}"</strong>.
+                </div>
+                
+                <div class="cert-footer-info">
+                    <div>
+                        <div class="cert-signature-val" id="completed-date-cert">{{ attempt.completed_at|date:"M d, Y" }}</div>
+                        <div class="cert-signature-line">Date Completed</div>
+                    </div>
+                    <div>
+                        <div class="cert-signature-val" style="font-family: 'Georgia', serif; font-style: italic; font-size: 1.5rem; color: #886a1f;">EduPlay Learning</div>
+                        <div class="cert-signature-line">Verifiable Platform Record</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Printing Style Overrides */
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        
+        .navbar, footer, .btn, .no-print, #brand-logo, #navbar-links, #system-messages {
+            display: none !important;
+        }
+        
+        .main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .certificate-container {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+        
+        .certificate-border-outer {
+            box-shadow: none !important;
+            border: 12px double #b3922e !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}

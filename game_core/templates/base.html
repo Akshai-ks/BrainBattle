@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="EduPlay - An interactive game-based educational platform for teachers to design customized quizzes, word puzzles, fill in the blanks, and matches, and for students to play, earn marks, and get concept explanations.">
+    <title>{% block title %}EduPlay - Educational Gaming Platform{% endblock %}</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body class="fade-in">
+    <!-- Full-screen Canvas for Confetti Animations -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Global Navigation -->
+    <nav class="navbar" id="main-navbar">
+        <a href="{% url 'index' %}" class="nav-brand" id="brand-logo">
+            <span>🎮</span> EduPlay
+        </a>
+        <button class="nav-toggle" id="navbar-toggle-btn" aria-label="Toggle navigation" type="button">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <div class="nav-links" id="navbar-links">
+            <a href="{% url 'index' %}" class="nav-link">Home</a>
+
+            {% if request.user.is_authenticated %}
+            <!-- Teacher Logged In -->
+            <a href="{% url 'teacher_dashboard' %}" class="nav-link" style="color: var(--accent-cyan); font-weight: 600;">👨‍🏫 {{ request.user.username }}</a>
+            <a href="{% url 'create_game_setup' %}" class="nav-link">Create Game</a>
+            <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm" id="logout-button">Logout</a>
+            {% elif request.session.student_id %}
+            <!-- Student Logged In -->
+            <a href="{% url 'student_dashboard' %}" class="nav-link" style="color: var(--accent-purple); font-weight: 600;">🎓 {{ request.session.student_name }}</a>
+            <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm" id="logout-button">Logout</a>
+            {% else %}
+            <!-- Guest View -->
+            <a href="{% url 'student_login' %}" class="nav-link">Student Login</a>
+            <a href="{% url 'teacher_login' %}" class="btn btn-primary" id="teacher-portal-btn">Teacher Portal</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+        <!-- Messages System -->
+        {% if messages %}
+        <div class="messages-container" id="system-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %} slide-up"
+                role="alert">
+                {% if message.tags == 'success' %}
+                <span>✅</span>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                <span>❌</span>
+                {% else %}
+                <span>ℹ️</span>
+                {% endif %}
+                <div>{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Page Footer -->
+    <footer
+        style="padding: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: auto;">
+        <p>&copy; 2026 EduPlay. All rights reserved.</p>
+    </footer>
+
+    <!-- Confetti Script Integration -->
+    <script>
+        // Custom Lightweight Confetti Script
+        (function () {
+            const canvas = document.getElementById('confetti-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let animationFrameId = null;
+            let particles = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class ConfettiParticle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * -canvas.height - 20;
+                    this.size = Math.random() * 8 + 6;
+                    this.color = ['#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#fbbf24', '#f43f5e'][Math.floor(Math.random() * 6)];
+                    this.speedY = Math.random() * 4 + 4;
+                    this.speedX = Math.random() * 2 - 1;
+                    this.rotation = Math.random() * 360;
+                    this.rotationSpeed = Math.random() * 4 - 2;
+                }
+                update() {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    this.rotation += this.rotationSpeed;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation * Math.PI / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                    ctx.restore();
+                }
+            }
+
+            window.triggerConfetti = function () {
+                particles = [];
+                for (let i = 0; i < 150; i++) {
+                    particles.push(new ConfettiParticle());
+                }
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animateConfetti();
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                    if (p.y < canvas.height + 20) alive = true;
+                });
+                if (alive) {
+                    animationFrameId = requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        })();
+
+        // Auto-dismiss alerts after 4 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+
+        // Hamburger Menu Toggle
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById('navbar-toggle-btn');
+            const navLinks = document.getElementById('navbar-links');
+            if (toggleBtn && navLinks) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleBtn.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!toggleBtn.contains(e.target) && !navLinks.contains(e.target)) {
+                        toggleBtn.classList.remove('active');
+                        navLinks.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+
+</html>

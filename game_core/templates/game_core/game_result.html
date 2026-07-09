@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Game Results - EduPlay{% endblock %}
+
+{% block content %}
+{% if trial_mode %}
+    <!-- Trial Mode Banner -->
+    <div style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.35); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.25rem;">⚠️</span>
+            <div style="text-align: left;">
+                <strong style="color: #fbbf24; font-size: 0.95rem;">Trial Mode – Preview Results</strong>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">This trial attempt was not recorded in the database.</span>
+            </div>
+        </div>
+        <span style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; font-size: 0.72rem; padding: 0.25rem 0.5rem; border-radius: 3px; font-weight: 700; border: 1px solid rgba(251, 191, 36, 0.25);">Not Recorded</span>
+    </div>
+{% endif %}
+<div class="glass-panel slide-up" style="max-width: 700px; margin: 0 auto; text-align: center;" id="result-page">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+    <h2 style="font-size: 2.25rem; margin-bottom: 0.5rem; color: var(--accent-purple);">{{ attempt.game.title }} Result</h2>
+    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">{{ feedback }}</p>
+
+    <!-- Score Info -->
+    <div style="display: inline-flex; flex-direction: column; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1.5rem 3rem; border-radius: var(--radius-md); margin-bottom: 2.5rem;">
+        <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Final Score</span>
+        <span style="font-size: 3.5rem; font-weight: 800; color: var(--accent-yellow); line-height: 1;">{{ attempt.score }} / {{ attempt.max_score }}</span>
+        <span style="font-size: 1rem; color: var(--text-muted); margin-top: 0.5rem;">Time Taken: {{ attempt.time_taken }}s</span>
+    </div>
+
+    <!-- Certificate Button if eligible -->
+    {% if eligible_for_certificate %}
+        <div style="margin-bottom: 2.5rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--accent-green); border-radius: var(--radius-md);">
+            <h4 style="color: var(--accent-green); margin-bottom: 0.5rem; font-size: 1.15rem;">🎓 Perfect Score Certificate Unlocked!</h4>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Congratulations! Because you achieved 100%, you can view and print your Certificate of Completion.</p>
+            <a href="{% url 'generate_certificate' attempt.id %}" class="btn btn-primary" id="view-certificate-btn">
+                View & Print Certificate 🎓
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Solution Key & Concept Explanation Section -->
+    <div style="text-align: left; border-top: 1px solid var(--border-color); padding-top: 2rem; margin-top: 1rem;">
+        <h3 style="font-size: 1.35rem; margin-bottom: 1.25rem; color: var(--accent-cyan);">📚 Answer Key & Explanation</h3>
+        
+        <!-- Concept Explanation -->
+        <div style="background: rgba(6, 182, 212, 0.03); border: 1px solid rgba(6, 182, 212, 0.15); padding: 1.25rem; border-radius: var(--radius-sm); margin-bottom: 2rem;">
+            <strong style="color: var(--accent-cyan); font-size: 0.95rem;">Concept Explanation:</strong>
+            <p style="color: var(--text-primary); margin-top: 0.5rem; font-size: 0.95rem; line-height: 1.6;">{{ attempt.game.explanation }}</p>
+        </div>
+
+        <!-- Correct Answers depending on type -->
+        <div class="glass-panel" style="padding: 1.5rem; background: rgba(255,255,255,0.01);">
+            <h4 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-secondary);">Correct Answer(s):</h4>
+            
+            {% if attempt.game.game_type == 'word_puzzle' %}
+                <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-purple); text-transform: uppercase;">
+                    {{ attempt.game.correct_word }}
+                </div>
+            {% elif attempt.game.game_type == 'mcq' %}
+                <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                    {% for q in attempt.game.mcq_questions.all %}
+                        <li>
+                            <strong>{{ q.question_text }}</strong>
+                            <div style="color: var(--accent-green); margin-top: 0.25rem; font-size: 0.9rem;">
+                                Correct: Option {{ q.correct_option }}
+                                ({% if q.correct_option == 'A' %}{{ q.option_a }}{% elif q.correct_option == 'B' %}{{ q.option_b }}{% elif q.correct_option == 'C' %}{{ q.option_c }}{% else %}{{ q.option_d }}{% endif %})
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% elif attempt.game.game_type == 'fill_blanks' %}
+                <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                    {% for q in attempt.game.blank_questions.all %}
+                        <li>
+                            <strong>{{ q.question_text }}</strong>
+                            <div style="color: var(--accent-green); margin-top: 0.25rem; font-size: 0.9rem;">
+                                Blank Value: <strong>{{ q.correct_answer }}</strong>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% elif attempt.game.game_type == 'match_following' %}
+                <ul style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for item in attempt.game.match_items.all %}
+                        <li style="display: flex; gap: 1rem; align-items: center;">
+                            <span style="font-weight: 600;">{{ item.left_item }}</span> 
+                            <span style="color: var(--text-muted);">➔</span> 
+                            <span style="color: var(--accent-green);">{{ item.right_item }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Back Action -->
+    <div style="margin-top: 3rem; display: flex; justify-content: center; gap: 1rem;">
+        {% if trial_mode %}
+            <a href="#" onclick="window.close(); return false;" class="btn btn-secondary" id="exit-trial-btn">
+                Exit Trial Mode ❌
+            </a>
+            <a href="{% url 'play_game' attempt.game.id %}?trial=true" class="btn btn-primary" id="play-again-btn">
+                🔄 Restart Trial
+            </a>
+        {% else %}
+            <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" id="back-to-dashboard-btn">
+                ⬅ Return to Dashboard
+            </a>
+            {% if attempt.game.game_type != 'fill_blanks' %}
+                <a href="{% url 'play_game' attempt.game.id %}" class="btn btn-primary" id="play-again-btn">
+                    🔄 Play Again
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

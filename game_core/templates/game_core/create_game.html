@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Game - Step 1 - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" style="max-width: 650px;" id="create-game-panel">
+    <h2 class="form-title">Create New Game - General Setup</h2>
+    
+    <form method="POST" id="create-game-form">
+        {% csrf_token %}
+        
+        <!-- Game Title -->
+        <div class="form-group">
+            <label for="title">Game Title</label>
+            <input type="text" name="title" id="title" class="form-control" placeholder="E.g., Photosynthesis Vocabulary, Math Equation Matcher" required>
+        </div>
+
+
+        <!-- Game Type Selection -->
+        <div class="form-group">
+            <label>Game Type</label>
+            <div class="creation-type-grid" id="type-cards-container">
+                <div class="type-select-card selected" data-type="word_puzzle">
+                    <div class="type-icon">🧩</div>
+                    <div class="type-title">Word Puzzle</div>
+                </div>
+                <div class="type-select-card" data-type="mcq">
+                    <div class="type-icon">📝</div>
+                    <div class="type-title">MCQ</div>
+                </div>
+                <div class="type-select-card" data-type="fill_blanks">
+                    <div class="type-icon">✏️</div>
+                    <div class="type-title">Fill Blanks</div>
+                </div>
+                <div class="type-select-card" data-type="match_following">
+                    <div class="type-icon">🔗</div>
+                    <div class="type-title">Match Items</div>
+                </div>
+            </div>
+            <!-- Hidden Input for selected type -->
+            <input type="hidden" name="game_type" id="selected-game-type" value="word_puzzle">
+        </div>
+
+        <!-- Instructions -->
+        <div class="form-group">
+            <label for="instructions">Instructions (How to play)</label>
+            <textarea name="instructions" id="instructions" class="form-control" placeholder="E.g. Click the letters in order to build the target word before clues appear." required></textarea>
+        </div>
+
+        <!-- Concept Explanation -->
+        <div class="form-group">
+            <label for="explanation">Explanation (Concept behind the answer)</label>
+            <textarea name="explanation" id="explanation" class="form-control" placeholder="E.g. Photosynthesis is the process used by plants to convert light energy into chemical energy..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 1.5rem;" id="submit-step-1">
+            Next: Configure Game Details ➔
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const cards = document.querySelectorAll('.type-select-card');
+        const hiddenInput = document.getElementById('selected-game-type');
+        
+        cards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                cards.forEach(c => c.classList.remove('selected'));
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                // Update hidden input value
+                const type = this.getAttribute('data-type');
+                hiddenInput.value = type;
+            });
+        });
+    });
+</script>
+{% endblock %}

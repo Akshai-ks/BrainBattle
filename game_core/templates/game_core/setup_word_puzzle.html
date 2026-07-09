@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Word Puzzles - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" style="max-width: 800px; margin: 2rem auto;" id="setup-word-puzzle-panel">
+    <h2 class="form-title" style="color: var(--accent-purple);">Configure Word Puzzles - {{ game.title }}</h2>
+    <p style="color: var(--text-secondary); text-align: center; margin-bottom: 2rem; font-size: 0.95rem;">
+        💡 <strong>{% if is_student %}Creator{% else %}Teacher{% endif %} Tip:</strong> You can configure between <strong>5 to 10 words</strong> for this game. Students will play them sequentially, building words and using clues under time constraints.
+    </p>
+    
+    <form method="POST" id="setup-word-puzzle-form">
+        {% csrf_token %}
+        
+        <div id="words-list" style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem;">
+            <!-- Dynamic Word Cards Added Here -->
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-secondary" id="add-word-btn">
+                ➕ Add Another Word
+            </button>
+            <button type="submit" class="btn btn-primary" id="save-words-btn" style="font-weight: 700; background: var(--accent-green); border-color: var(--accent-green); color: white;">
+                {% if is_student %}Save Questions ➔{% else %}Save & Publish Word Puzzle Game{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let wordCount = 0;
+
+    function addWordCard(word = '', override = '', clue1 = '', clue1Time = 15, clue2 = '', clue2Time = 30, fullMarks = 10, redMarks = 7, minMarks = 4, clue3 = '') {
+        wordCount++;
+        const container = document.getElementById('words-list');
+        
+        const card = document.createElement('div');
+        card.className = 'question-builder-card fade-in';
+        card.id = `word-card-${wordCount}`;
+        card.style.paddingTop = '2rem';
+        
+        card.innerHTML = `
+            <span class="question-num-badge" style="background: var(--accent-purple);">Word ${wordCount}</span>
+            <button type="button" class="btn btn-danger btn-sm" style="position: absolute; top: 15px; right: 15px; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="removeWord(${wordCount})">Remove</button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Correct Target Word</label>
+                    <input type="text" name="correct_word" class="form-control" style="text-transform: uppercase;" placeholder="E.g., MARS" value="${word}" required>
+                </div>
+                <div class="form-group">
+                    <label>Letters Override (Optional)</label>
+                    <input type="text" name="letters_override" class="form-control" style="text-transform: uppercase;" placeholder="E.g., M,A,R,S,X,Y" value="${override}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 1rem;">
+                <div class="form-group">
+                    <label>Clue 1 Text</label>
+                    <input type="text" name="clue1" class="form-control" placeholder="E.g., The Red Planet" value="${clue1}" required>
+                </div>
+                <div class="form-group">
+                    <label>Clue 1 Time (s)</label>
+                    <input type="number" name="clue1_time" class="form-control" min="1" value="${clue1Time}" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Clue 2 Text</label>
+                    <input type="text" name="clue2" class="form-control" placeholder="E.g., Named after God of War" value="${clue2}" required>
+                </div>
+                <div class="form-group">
+                    <label>Clue 2 Time (s)</label>
+                    <input type="number" name="clue2_time" class="form-control" min="1" value="${clue2Time}" required>
+                </div>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Clue 3 Text</label>
+                    <input type="text" name="clue3" class="form-control" placeholder="E.g., Starts with M (Optional)" value="${clue3}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 1rem;">
+                <div class="form-group">
+                    <label>Full Marks</label>
+                    <input type="number" name="full_marks" class="form-control" min="1" value="${fullMarks}" required>
+                </div>
+                <div class="form-group">
+                    <label>Marks (Clue 1)</label>
+                    <input type="number" name="reduced_marks_clue1" class="form-control" min="0" value="${redMarks}" required>
+                </div>
+                <div class="form-group">
+                    <label>Min Marks</label>
+                    <input type="number" name="min_marks_clue2" class="form-control" min="0" value="${minMarks}" required>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    }
+
+    function removeWord(index) {
+        const card = document.getElementById(`word-card-${index}`);
+        if (card) {
+            card.remove();
+            reindexWords();
+        }
+    }
+
+    function reindexWords() {
+        const cards = document.querySelectorAll('.question-builder-card');
+        wordCount = 0;
+        cards.forEach((card) => {
+            wordCount++;
+            card.id = `word-card-${wordCount}`;
+            const badge = card.querySelector('.question-num-badge');
+            badge.innerText = `Word ${wordCount}`;
+            
+            const deleteBtn = card.querySelector('button[type="button"]');
+            deleteBtn.setAttribute('onclick', `removeWord(${wordCount})`);
+        });
+    }
+
+    document.getElementById('add-word-btn').addEventListener('click', () => {
+        addWordCard();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if game.word_puzzles.exists %}
+            {% for wp in game.word_puzzles.all %}
+                addWordCard(
+                    "{{ wp.correct_word|escapejs }}",
+                    "{{ wp.letters_override|escapejs }}",
+                    "{{ wp.clue1|escapejs }}",
+                    parseInt("{{ wp.clue1_time }}"),
+                    "{{ wp.clue2|escapejs }}",
+                    parseInt("{{ wp.clue2_time }}"),
+                    parseInt("{{ wp.full_marks }}"),
+                    parseInt("{{ wp.reduced_marks_clue1 }}"),
+                    parseInt("{{ wp.min_marks_clue2 }}"),
+                    "{{ wp.clue3|default_if_none:''|escapejs }}"
+                );
+            {% endfor %}
+        {% else %}
+            for (let i = 0; i < 5; i++) {
+                addWordCard();
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

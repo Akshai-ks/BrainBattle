@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Match the Following - EduPlay{% endblock %}
+
+{% block content %}
+<div class="glass-panel form-container slide-up" style="max-width: 800px; margin: 2rem auto;" id="setup-match-panel">
+    <h2 class="form-title" style="color: var(--accent-purple);">Configure Match the Following - {{ game.title }}</h2>
+    <p style="color: var(--text-secondary); text-align: center; margin-bottom: 2rem; font-size: 0.95rem;">
+        💡 <strong>{% if is_student %}Creator{% else %}Teacher{% endif %} Tip:</strong> You can configure between <strong>5 to 10 matching pairs</strong> to adapt the game to different class sessions, topics, and difficulty levels.
+    </p>
+    
+    <form method="POST" id="setup-match-form">
+        {% csrf_token %}
+        
+        <!-- Overall Clues Config -->
+        <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); border-radius: var(--radius-md);">
+            <h3 style="color: var(--accent-yellow); font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                💡 Configure Match Game Clues
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                Set the 3 clues that will be shown to students playing this match game board.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div class="form-group">
+                    <label>Clue 1 (Free Hint)</label>
+                    <input type="text" name="clue1" class="form-control" placeholder="E.g., Match left country to right capital" value="{{ game.clue1|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Clue 2 (Deduction)</label>
+                    <input type="text" name="clue2" class="form-control" placeholder="E.g., Paris is correct for France" value="{{ game.clue2|default_if_none:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Clue 3 (More Deduction)</label>
+                    <input type="text" name="clue3" class="form-control" placeholder="E.g., Tokyo matches Japan" value="{{ game.clue3|default_if_none:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <div id="items-list" style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Dynamic Pairs Added Here -->
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-secondary" id="add-pair-btn">
+                ➕ Add Another Pair
+            </button>
+            <button type="submit" class="btn btn-primary" id="save-match-btn" style="font-weight: 700; background: var(--accent-green); border-color: var(--accent-green); color: white;">
+                {% if is_student %}Save Questions ➔{% else %}Save & Publish Match Game{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let pairCount = 0;
+
+    function addPair(leftVal = '', rightVal = '') {
+        pairCount++;
+        const container = document.getElementById('items-list');
+        
+        const card = document.createElement('div');
+        card.className = 'question-builder-card fade-in';
+        card.id = `pair-card-${pairCount}`;
+        
+        card.innerHTML = `
+            <span class="question-num-badge">Pair ${pairCount}</span>
+            <button type="button" class="btn btn-danger btn-sm" style="position: absolute; top: 15px; right: 15px; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="removePair(${pairCount})">Remove</button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                <div class="form-group">
+                    <label>Left Side Item</label>
+                    <input type="text" name="left_item" class="form-control" placeholder="E.g., France" value="${leftVal}" required>
+                </div>
+                <div class="form-group">
+                    <label>Right Side (Correct Match)</label>
+                    <input type="text" name="right_item" class="form-control" placeholder="E.g., Paris" value="${rightVal}" required>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    }
+
+    function removePair(index) {
+        const card = document.getElementById(`pair-card-${index}`);
+        if (card) {
+            card.remove();
+            reindexPairs();
+        }
+    }
+
+    function reindexPairs() {
+        const cards = document.querySelectorAll('.question-builder-card');
+        pairCount = 0;
+        cards.forEach((card) => {
+            pairCount++;
+            card.id = `pair-card-${pairCount}`;
+            const badge = card.querySelector('.question-num-badge');
+            badge.innerText = `Pair ${pairCount}`;
+            
+            const deleteBtn = card.querySelector('button[type="button"]');
+            deleteBtn.setAttribute('onclick', `removePair(${pairCount})`);
+        });
+    }
+
+    document.getElementById('add-pair-btn').addEventListener('click', () => {
+        addPair();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if game.match_items.exists %}
+            {% for item in game.match_items.all %}
+                addPair("{{ item.left_item|escapejs }}", "{{ item.right_item|escapejs }}");
+            {% endfor %}
+        {% else %}
+            for (let i = 0; i < 5; i++) {
+                addPair();
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

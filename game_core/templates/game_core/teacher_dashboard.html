@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="teacher-dashboard">
+    <div class="dashboard-header" style="margin-bottom: 2.5rem; text-align: center;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🏫 Teacher Control Hub
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            Manage students, upload academic grades, broadcast notifications, configure platform parameters, and review learning games.
+        </p>
+    </div>
+
+    <!-- Main Grid: Cards Menu -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;" class="grid-3col-md">
+        
+        <!-- Card 1: Create Game -->
+        <a href="{% url 'create_game_setup' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #c084fc;">🎮</div>
+            <div class="menu-card-body">
+                <h3>Create Game</h3>
+                <p>Launch interactive learning quizzes, MCQs, word scrambles, and association games.</p>
+            </div>
+        </a>
+
+        <!-- Card 2: View Games -->
+        <a href="{% url 'view_games' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(96, 165, 250, 0.15); color: #60a5fa;">👁️</div>
+            <div class="menu-card-body">
+                <h3>View Games</h3>
+                <p>Review the active catalog of conceptual educational challenges, edit details, or toggle visibility.</p>
+            </div>
+        </a>
+
+        <!-- Card 3: Create Student -->
+        <a href="{% url 'create_student' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(34, 197, 94, 0.15); color: #4ade80;">👤</div>
+            <div class="menu-card-body">
+                <h3>Create Student</h3>
+                <p>Enroll new candidates manually or batch register profiles by importing a roster spreadsheet.</p>
+            </div>
+        </a>
+
+        <!-- Card 4: View Students -->
+        <a href="{% url 'view_students' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(234, 179, 8, 0.15); color: #facc15;">👥</div>
+            <div class="menu-card-body">
+                <h3>View Students</h3>
+                <p>Monitor profiles, view individual academic reports, and toggle specific replay permissions.</p>
+            </div>
+        </a>
+
+        <!-- Card 5: Upload Marks -->
+        <a href="{% url 'manage_marks' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">📊</div>
+            <div class="menu-card-body">
+                <h3>Upload & Manage Marks</h3>
+                <p>Log grades manually or import Exam scores via Excel templates. Edit or wipe records cleanly.</p>
+            </div>
+        </a>
+
+        <!-- Card 6: Upload PDF Notes -->
+        <a href="{% url 'manage_notes' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">📚</div>
+            <div class="menu-card-body">
+                <h3>Upload PDF Notes</h3>
+                <p>Upload lecture notes, lesson guides, and reference documents for students to download.</p>
+            </div>
+        </a>
+
+        <!-- Card 7: Announcements / Messages -->
+        <a href="{% url 'manage_announcements' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">📢</div>
+            <div class="menu-card-body">
+                <h3>Announcements / Messages</h3>
+                <p>Send instructions, class notices, and message updates to the student dashboards.</p>
+            </div>
+        </a>
+
+        <!-- Card 8: Student Submitted Games -->
+        <a href="{% url 'review_student_games' %}" class="menu-card">
+            <div class="menu-card-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">🎓</div>
+            <div class="menu-card-body">
+                <h3>Student Submitted Games</h3>
+                <p>Review, preview, and publish conceptual games designed by approved students.</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .menu-card {
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        height: 100%;
+    }
+    
+    .menu-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(96, 165, 250, 0.5);
+        background: rgba(30, 41, 59, 0.7);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(96, 165, 250, 0.1);
+    }
+    
+    .menu-card-icon {
+        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+    }
+    
+    .menu-card-body h3 {
+        margin: 0 0 0.4rem 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+        transition: color 0.2s ease;
+    }
+    
+    .menu-card:hover .menu-card-body h3 {
+        color: #60a5fa;
+    }
+    
+    .menu-card-body p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    @media (min-width: 768px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .grid-3col-md {
+            grid-template-columns: 1fr 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

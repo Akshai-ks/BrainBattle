@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to EduPlay - Conceptual Learning Portal{% endblock %}
+
+{% block content %}
+<div class="welcome-container" style="position: relative; max-width: 960px; margin: 0 auto; padding: 5rem 1.5rem; text-align: center;">
+    <!-- Abstract Ambient Glow Backgrounds (Soft Cyan & Green Theme) -->
+    <div style="position: absolute; width: 450px; height: 450px; background: radial-gradient(circle, rgba(6, 182, 212, 0.07) 0%, transparent 70%); top: -10%; left: 10%; z-index: -1; filter: blur(80px); pointer-events: none;"></div>
+    <div style="position: absolute; width: 450px; height: 450px; background: radial-gradient(circle, rgba(16, 185, 129, 0.07) 0%, transparent 70%); top: 25%; right: 10%; z-index: -1; filter: blur(80px); pointer-events: none;"></div>
+
+    <!-- Hero Header -->
+    <div class="hero-welcome-section fade-in" style="padding: 2rem 0; margin-bottom: 3.5rem;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(6, 182, 212, 0.04); border: 1px solid rgba(6, 182, 212, 0.15); padding: 0.45rem 1.15rem; border-radius: 100px; color: var(--accent-cyan); font-size: 0.8rem; font-weight: 700; margin-bottom: 1.75rem; letter-spacing: 0.05em; text-transform: uppercase;">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green);"></span>
+            Conceptual Learning Portal
+        </div>
+        
+        <h1 style="font-size: 3.75rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem; letter-spacing: -0.03em; color: #fff;">
+            Welcome to <span style="background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EduPlay</span>
+        </h1>
+        
+        <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 640px; margin: 0 auto; line-height: 1.6; font-weight: 400;">
+            An interactive workspace designed for conceptual learning. Start educational games, access slide handouts, and review syllabus materials.
+        </p>
+    </div>
+
+    <!-- Portal Selection Grid (Minimal & Clean) -->
+    <div class="portal-grid slide-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 2rem; max-width: 800px; margin: 0 auto;">
+        
+        <!-- Student Zone -->
+        <div class="portal-card student-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); background: rgba(30, 41, 59, 0.2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius-md); padding: 2.5rem 2rem; text-align: left; transition: all 0.25s ease;">
+            <div>
+                <!-- Cap Icon -->
+                <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-weight: 700;">Student Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 2rem;">
+                    Play word puzzles, MCQs, or matches, and retrieve notes uploaded by your teacher.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'student_login' %}" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.85rem; font-size: 0.95rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-green), #10b981); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15); text-decoration: none;">
+                    Student Login ▶
+                </a>
+            </div>
+        </div>
+
+        <!-- Teacher Portal -->
+        <div class="portal-card teacher-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); background: rgba(30, 41, 59, 0.2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius-md); padding: 2.5rem 2rem; text-align: left; transition: all 0.25s ease;">
+            <div>
+                <!-- Board Icon -->
+                <div style="width: 48px; height: 48px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.15); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-weight: 700;">Teacher Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 2rem;">
+                    Manage profiles, design interactive tasks, check logs, and upload files.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'teacher_login' %}" class="btn btn-accent" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.85rem; font-size: 0.95rem; border-radius: var(--radius-sm); font-weight: 700; background: linear-gradient(135deg, var(--accent-cyan), #3b82f6); color: #fff; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15); text-decoration: none;">
+                    Teacher Portal ➔
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem !important;
+        }
+    }
+    .portal-card {
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .portal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+    }
+    .student-card:hover {
+        border-color: rgba(16, 185, 129, 0.3) !important;
+    }
+    .teacher-card:hover {
+        border-color: rgba(6, 182, 212, 0.3) !important;
+    }
+</style>
+{% endblock %}

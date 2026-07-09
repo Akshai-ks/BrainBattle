@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Play Games - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Back to Dashboard Header -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 2rem; margin: 0 0 0.25rem 0;">🎮 Play Educational Games</h2>
+            <p style="color: var(--text-secondary); margin: 0;">Reinforce your learning concepts through interactive challenges.</p>
+        </div>
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1.25rem; text-decoration: none;">
+            ⬅ Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <a href="{% url 'student_view_games' %}" class="btn {% if not selected_type %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+            All Games
+        </a>
+        <a href="{% url 'student_view_games' %}?type=mcq" class="btn {% if selected_type == 'mcq' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+            MCQs 📝
+        </a>
+        <a href="{% url 'student_view_games' %}?type=word_puzzle" class="btn {% if selected_type == 'word_puzzle' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+            Word Puzzles 🧩
+        </a>
+        <a href="{% url 'student_view_games' %}?type=fill_blanks" class="btn {% if selected_type == 'fill_blanks' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+            Fill in the Blanks ✏️
+        </a>
+        <a href="{% url 'student_view_games' %}?type=match_following" class="btn {% if selected_type == 'match_following' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+            Match Association 🔗
+        </a>
+    </div>
+
+    {% if not games %}
+        <div class="glass-panel" style="text-align: center; padding: 5rem 2rem;">
+            <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">👾</span>
+            <h3 style="color: #fff; margin-bottom: 0.5rem;">No games available</h3>
+            <p style="color: var(--text-secondary); margin: 0;">There are no active learning games matching this type at this time.</p>
+        </div>
+    {% else %}
+        <!-- Active Games Section -->
+        <h3 style="margin-bottom: 1.25rem; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem; font-size: 1.4rem;">
+            🟢 Playable Active Games
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem;" class="grid-2col-md">
+            {% for game in games %}
+                {% if game.id not in blocked_game_ids %}
+                    {% include 'game_core/includes/student_game_card.html' with is_blocked=False %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Inactive/Completed Games Section -->
+        <h3 style="margin-bottom: 1.25rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; font-size: 1.4rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+            🔒 Locked & Replay-Disabled Games
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.5rem; margin-top: -0.75rem;">These games have either been completed, locked by the teacher, or are waiting for attempt permissions.</p>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem;" class="grid-2col-md">
+            {% for game in games %}
+                {% if game.id in blocked_game_ids %}
+                    {% include 'game_core/includes/student_game_card.html' with is_blocked=True %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

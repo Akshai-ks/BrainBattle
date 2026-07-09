@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Enroll Students - EduPlay{% endblock %}
+
+{% block content %}
+<div class="fade-in" id="create-student-section">
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div class="dashboard-title">
+            <a href="{% url 'view_students' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateX(-4px)'" onmouseout="this.style.transform='translateX(0)'">
+                ← Back to Student Directory
+            </a>
+            <h1>👤 Enroll Student Accounts</h1>
+            <p>Create credentials for new class candidates manually or upload structured student lists via Excel rosters.</p>
+        </div>
+    </div>
+
+    <!-- Forms Selection Grid -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;" class="grid-2col-md">
+        
+        <!-- Column 1: Manual Creation -->
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.25rem; color: #fff; font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                ✍️ Manual Student Entry
+            </h3>
+            <form method="POST" action="{% url 'create_student' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="manual">
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="student_name" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Student Name</label>
+                    <input type="text" name="name" id="student_name" class="form-control" placeholder="Enter student's full name" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="student_reg" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Register Number (Username)</label>
+                    <input type="text" name="register_number" id="student_reg" class="form-control" placeholder="e.g. REG2026101" required style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+                    <small style="display: block; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
+                        💡 Default password will auto-generate as: <code style="color: var(--accent-cyan); font-weight: 600;">[RegisterNumber]@[RegisterNumber]</code>
+                    </small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="student_email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Email Address (Optional)</label>
+                    <input type="email" name="email" id="student_email" class="form-control" placeholder="student@school.edu" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-sm); background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 0.95rem;">
+                </div>
+
+                <button type="submit" class="btn btn-accent" style="width: 100%; font-size: 0.95rem; font-weight: 700; padding: 0.75rem;">
+                    Create Student Profile ➔
+                </button>
+            </form>
+        </div>
+
+        <!-- Column 2: Excel Upload -->
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.25rem; color: #fff; font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                📥 Import Roster via Excel
+            </h3>
+            <form method="POST" action="{% url 'create_student' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="excel">
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Roster Excel Sheet (.xlsx)</label>
+                    <div style="border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: var(--radius-sm); padding: 2rem; text-align: center; background: rgba(0,0,0,0.15); transition: border-color 0.25s ease;" onmouseover="this.style.borderColor='var(--accent-purple)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" required style="display: none;" onchange="document.getElementById('file-chosen-text').innerText = this.files[0].name">
+                        <label for="excel_file" style="cursor: pointer; display: inline-flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 2.5rem; filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.25));">📄</span>
+                            <span class="btn btn-secondary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Browse Spreadsheet File</span>
+                            <span id="file-chosen-text" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">No file chosen</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.5rem;">
+                    <strong style="color: var(--accent-yellow);">Required Structure Info:</strong>
+                    <ul style="margin-left: 1.2rem; margin-top: 0.25rem; list-style-type: disc;">
+                        <li>Excel file must contain mapping for: <strong>Student Name</strong> and <strong>Register Number</strong> (headers matched automatically).</li>
+                        <li>Optional: <strong>Email</strong> column to save email addresses.</li>
+                        <li>Temporary passwords are generated as: <code style="color: var(--accent-cyan);">[RegisterNumber]@[RegisterNumber]</code></li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.95rem; font-weight: 700; padding: 0.75rem;">
+                    Upload & Roster Import ⚡
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (min-width: 768px) {
+        .grid-2col-md {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
