@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %}Welcome to Smart Learning Platform - EduPlay{% endblock %}
+{% block title %}Smart Learning Platform - EduPlay{% endblock %}
 
 {% block content %}
 <div class="smart-portal-wrapper fade-in">
-    
+    <!-- Animated Soft Background Blobs -->
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+    <div class="blur-blob blob-3"></div>
+
     <!-- Top Right Login Actions -->
     <div class="top-right-actions">
         <a href="{% url 'student_login' %}" class="portal-pill-btn student-pill">
@@ -15,30 +19,40 @@
         </a>
     </div>
 
-    <!-- Main Centered Content Container -->
+    <!-- Main Centered Content Card -->
     <div class="portal-main-card">
         
         <!-- Elegant Education/Gaming Vector Illustration -->
         <div class="illustration-wrapper">
-            <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="url(#pastel-grad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <defs>
-                    <linearGradient id="pastel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#2563eb" />
-                        <stop offset="50%" stop-color="#7c3aed" />
-                        <stop offset="100%" stop-color="#059669" />
-                    </linearGradient>
-                </defs>
-                <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(124, 58, 237, 0.25)"/>
-                <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
-                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
-                <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
-            </svg>
+            <div class="icon-glow-ring">
+                <svg class="floating-icon" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="url(#pastel-grad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="pastel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#4f46e5" />
+                            <stop offset="50%" stop-color="#9333ea" />
+                            <stop offset="100%" stop-color="#0891b2" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="12" cy="12" r="10" stroke-dasharray="4 4" stroke="rgba(147, 51, 234, 0.2)"/>
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" />
+                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
+                    <circle cx="12" cy="10" r="1.5" fill="url(#pastel-grad)" />
+                    <line x1="9.5" y1="10" x2="14.5" y2="10" stroke="url(#pastel-grad)" stroke-width="1" />
+                </svg>
+            </div>
         </div>
 
         <!-- Heading & Subtitle -->
-        <h1 class="main-title">Welcome to Smart Learning Platform</h1>
+        <h1 class="main-title">Smart Learning Platform</h1>
         <p class="main-subtitle">Learn, Compete, and Track Your Progress</p>
+
+        <!-- Visual Badges of Game Modes -->
+        <div class="features-preview-row">
+            <span class="preview-badge word-badge">Word Puzzles 🧩</span>
+            <span class="preview-badge mcq-badge">MCQs 📝</span>
+            <span class="preview-badge fill-badge">Fill Blanks ✏️</span>
+            <span class="preview-badge match-badge">Matches 🔗</span>
+        </div>
     </div>
 </div>
 
@@ -48,13 +62,15 @@
 
     /* Soft colorful pastel gradient background (visible blue/purple/indigo tones, not dark, not white) */
     body {
-        background: linear-gradient(135deg, #dbeafe 0%, #e9d5ff 50%, #c7d2fe 100%) !important;
-        color: #1e1b4b !important; /* Dark indigo text for contrast */
+        background: linear-gradient(135deg, #eef2f3 0%, #f5f3ff 50%, #e0f2fe 100%) !important;
+        color: #1e1b4b !important;
         font-family: 'Poppins', 'Inter', sans-serif !important;
         min-height: 100vh;
         margin: 0;
         display: flex;
         flex-direction: column;
+        position: relative;
+        overflow-x: hidden;
     }
 
     /* Hide standard dark navbar on index */
@@ -65,9 +81,10 @@
     /* Footer adjustments for light mode */
     footer {
         background: transparent !important;
-        border-top: 1px solid rgba(30, 27, 75, 0.08) !important;
+        border-top: 1px solid rgba(30, 27, 75, 0.06) !important;
         color: #4b5563 !important;
         margin-top: auto;
+        z-index: 10;
     }
 
     /* Main Container */
@@ -77,7 +94,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 6rem 2rem 2rem 2rem;
+        padding: 7rem 2rem 3rem 2rem;
+        z-index: 5;
     }
 
     /* Top Right Login Actions */
@@ -96,20 +114,20 @@
         gap: 0.5rem;
         padding: 0.65rem 1.35rem;
         background: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         border-radius: 100px;
-        color: #1e1b4b;
+        color: #374151;
         font-size: 0.88rem;
         font-weight: 600;
         text-decoration: none;
-        box-shadow: 0 4px 12px rgba(30, 27, 75, 0.04);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .portal-pill-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(30, 27, 75, 0.08), 0 0 0 3px rgba(124, 58, 237, 0.1);
-        border-color: rgba(124, 58, 237, 0.25);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.08);
+        border-color: rgba(79, 70, 229, 0.25);
         color: #111827;
     }
 
@@ -122,34 +140,48 @@
     }
     
     .student-dot {
-        background: #059669;
-        box-shadow: 0 0 8px rgba(5, 150, 105, 0.4);
+        background: #10b981;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
     }
     
     .teacher-dot {
-        background: #2563eb;
-        box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+        background: #3b82f6;
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
     }
 
     /* Centered Content Card */
     .portal-main-card {
-        max-width: 600px;
+        max-width: 650px;
         width: 100%;
-        padding: 3.5rem 2rem;
+        padding: 4rem 3rem;
         text-align: center;
         background: rgba(255, 255, 255, 0.45);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: 24px;
-        box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 28px;
+        box-shadow: 0 30px 60px -20px rgba(30, 27, 75, 0.06);
+        z-index: 10;
+        position: relative;
     }
 
     /* Floating Illustration wrapper */
     .illustration-wrapper {
-        margin-bottom: 2rem;
+        margin-bottom: 2.25rem;
         display: flex;
         justify-content: center;
+    }
+
+    .icon-glow-ring {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 120px;
+        height: 120px;
+        background: rgba(255,255,255,0.6);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.08);
     }
 
     .floating-icon {
@@ -158,26 +190,93 @@
 
     /* Headings */
     .main-title {
-        font-size: 2.75rem;
+        font-size: 3rem;
         font-weight: 800;
-        color: #1e1b4b;
-        margin: 0 0 1rem 0;
-        letter-spacing: -0.03em;
-        line-height: 1.2;
+        margin: 0 0 0.85rem 0;
+        letter-spacing: -0.04em;
+        line-height: 1.15;
+        background: linear-gradient(135deg, #1e1b4b 30%, #4f46e5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .main-subtitle {
         font-size: 1.15rem;
-        color: #4f46e5;
-        margin: 0;
-        font-weight: 500;
+        color: #4b5563;
+        margin: 0 0 2.5rem 0;
+        font-weight: 400;
         line-height: 1.5;
     }
 
-    /* Floating Animation keyframes */
+    /* Visual Badges row */
+    .features-preview-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        justify-content: center;
+    }
+
+    .preview-badge {
+        padding: 0.45rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 100px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.01);
+    }
+
+    .word-badge { color: #047857; border-color: rgba(16, 185, 129, 0.15); background: rgba(16, 185, 129, 0.03); }
+    .mcq-badge { color: #1d4ed8; border-color: rgba(59, 130, 246, 0.15); background: rgba(59, 130, 246, 0.03); }
+    .fill-badge { color: #0e7490; border-color: rgba(6, 182, 212, 0.15); background: rgba(6, 182, 212, 0.03); }
+    .match-badge { color: #7e22ce; border-color: rgba(139, 92, 246, 0.15); background: rgba(139, 92, 246, 0.03); }
+
+    /* Animated Blur Blobs */
+    .blur-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .blob-1 {
+        width: 350px;
+        height: 350px;
+        background: rgba(165, 180, 252, 0.25);
+        top: 10%;
+        left: 5%;
+        animation: blobFloat 16s infinite ease-in-out;
+    }
+
+    .blob-2 {
+        width: 400px;
+        height: 400px;
+        background: rgba(232, 121, 249, 0.15);
+        bottom: 10%;
+        right: 5%;
+        animation: blobFloat 20s infinite ease-in-out reverse;
+    }
+
+    .blob-3 {
+        width: 300px;
+        height: 300px;
+        background: rgba(14, 116, 144, 0.08);
+        top: 40%;
+        left: 30%;
+        animation: blobFloat 24s infinite ease-in-out;
+    }
+
+    /* Keyframe Animations */
     @keyframes float {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @keyframes blobFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -40px) scale(1.05); }
+        66% { transform: translate(-20px, 20px) scale(0.95); }
     }
 
     /* Responsive Adjustments */
@@ -199,7 +298,14 @@
             justify-content: center;
         }
         .main-title {
-            font-size: 2.25rem;
+            font-size: 2.35rem;
+        }
+        .features-preview-row {
+            gap: 0.4rem;
+        }
+        .preview-badge {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.75rem;
         }
     }
 </style>
