@@ -108,8 +108,8 @@ def student_login(request):
                     request.session['student_name'] = student.name
                     
                     # Check if logging in with the default password
-                    default_pw = f"{reg_num}@{reg_num}"
-                    if password == default_pw:
+                    default_pw = f"{student.register_number}@{student.register_number}"
+                    if check_password(default_pw, student.password):
                         request.session['must_change_password'] = True
                         messages.warning(request, "Please change your default password to secure your account.")
                         return redirect('student_change_password')
