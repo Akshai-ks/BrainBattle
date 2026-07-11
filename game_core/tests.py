@@ -64,14 +64,40 @@ class EducationalPlatformTests(TestCase):
         })
         self.assertRedirects(response, reverse('teacher_dashboard'))
 
-    def test_student_login_success(self):
-        """Test student login validation with matching register number and password."""
+    def test_student_login_success_default_password(self):
+        """Test student login validation redirects to change password page if default password is used."""
         response = self.client.post(reverse('student_login'), {
             'register_number': 'REG100',
             'password': 'REG100@REG100'
         })
+        self.assertRedirects(response, reverse('student_change_password'))
+        self.assertEqual(self.client.session['student_id'], self.student.id)
+        self.assertTrue(self.client.session['must_change_password'])
+
+    def test_student_login_success_changed_password(self):
+        """Test student login validation redirects directly to dashboard if password has been changed."""
+        from django.contrib.auth.hashers import make_password
+        self.student.password = make_password('newsecurepassword123')
+        self.student.save()
+
+        response = self.client.post(reverse('student_login'), {
+            'register_number': 'REG100',
+            'password': 'newsecurepassword123'
+        })
         self.assertRedirects(response, reverse('student_dashboard'))
         self.assertEqual(self.client.session['student_id'], self.student.id)
+        self.assertFalse(self.client.session['must_change_password'])
+
+    def test_student_mandatory_password_change_redirection(self):
+        """Test that a student logged in with default password is redirected from dashboard to change password page."""
+        session = self.client.session
+        session['student_id'] = self.student.id
+        session['student_name'] = self.student.name
+        session['must_change_password'] = True
+        session.save()
+
+        response = self.client.get(reverse('student_dashboard'))
+        self.assertRedirects(response, reverse('student_change_password'))
 
     def test_student_login_failure(self):
         """Test student login validation failure handles invalid credentials."""

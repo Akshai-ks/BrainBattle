@@ -20,6 +20,26 @@ def student_login_required(view_func):
         if not request.session.get('student_id'):
             messages.error(request, "Please login as a student to access this page.")
             return redirect('student_login')
+            
+        # Check if password change is mandatory
+        if request.session.get('must_change_password') is None:
+            student_id = request.session.get('student_id')
+            student = Student.objects.filter(id=student_id).first()
+            if student:
+                default_pw = f"{student.register_number}@{student.register_number}"
+                if check_password(default_pw, student.password):
+                    request.session['must_change_password'] = True
+                else:
+                    request.session['must_change_password'] = False
+            else:
+                request.session['must_change_password'] = False
+
+        if request.session.get('must_change_password'):
+            from django.urls import reverse
+            if request.path != reverse('student_change_password') and request.path != reverse('logout'):
+                messages.warning(request, "You must change your default password before accessing the system.")
+                return redirect('student_change_password')
+                
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -86,8 +106,17 @@ def student_login(request):
                 if student.password and check_password(password, student.password):
                     request.session['student_id'] = student.id
                     request.session['student_name'] = student.name
-                    messages.success(request, f"Welcome back, {student.name}!")
-                    return redirect('student_dashboard')
+                    
+                    # Check if logging in with the default password
+                    default_pw = f"{reg_num}@{reg_num}"
+                    if password == default_pw:
+                        request.session['must_change_password'] = True
+                        messages.warning(request, "Please change your default password to secure your account.")
+                        return redirect('student_change_password')
+                    else:
+                        request.session['must_change_password'] = False
+                        messages.success(request, f"Welcome back, {student.name}!")
+                        return redirect('student_dashboard')
                 else:
                     messages.error(request, "Invalid registration number or password.")
             except Student.DoesNotExist:
@@ -2053,6 +2082,7 @@ def game_insights(request, game_id):
 @student_login_required
 def student_change_password(request):
     student = get_object_or_404(Student, id=request.session['student_id'])
+    is_mandatory = request.session.get('must_change_password', False)
     
     if request.method == 'POST':
         current_password = request.POST.get('current_password', '')
@@ -2062,15 +2092,15 @@ def student_change_password(request):
         from django.contrib.auth.hashers import check_password, make_password
         if not student.password or not check_password(current_password, student.password):
             messages.error(request, "Incorrect current password.")
-            return render(request, 'game_core/student_change_password.html')
+            return render(request, 'game_core/student_change_password.html', {'is_mandatory': is_mandatory})
             
         if new_password != confirm_password:
             messages.error(request, "New password and confirmation password do not match.")
-            return render(request, 'game_core/student_change_password.html')
+            return render(request, 'game_core/student_change_password.html', {'is_mandatory': is_mandatory})
             
         if not new_password.strip():
             messages.error(request, "New password cannot be empty.")
-            return render(request, 'game_core/student_change_password.html')
+            return render(request, 'game_core/student_change_password.html', {'is_mandatory': is_mandatory})
             
         student.password = make_password(new_password)
         student.save()
@@ -2079,6 +2109,6 @@ def student_change_password(request):
         messages.success(request, "Password updated successfully. Please login again with your new credentials.")
         return redirect('student_login')
         
-    return render(request, 'game_core/student_change_password.html')
+    return render(request, 'game_core/student_change_password.html', {'is_mandatory': is_mandatory})
 
 
