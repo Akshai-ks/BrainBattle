@@ -3,350 +3,479 @@
 {% block title %}Smart Learning Platform - EduPlay{% endblock %}
 
 {% block content %}
-<div class="smart-portal-wrapper fade-in">
-    <!-- Subtle Background Glows -->
-    <div class="subtle-glow glow-left"></div>
-    <div class="subtle-glow glow-right"></div>
-
-    <!-- Minimal Custom Header/Navbar -->
-    <div class="minimal-header">
-        <!-- Top Left Actions -->
-        <div class="top-left-actions">
-            <a href="{% url 'student_login' %}" class="portal-pill-btn student-pill">
-                <span class="dot student-dot"></span> Student Login
-            </a>
-            <a href="{% url 'teacher_login' %}" class="portal-pill-btn teacher-pill">
-                <span class="dot teacher-dot"></span> Teacher Login
-            </a>
+<div class="homepage-hero-section">
+    <!-- Ambient dynamic glowing blobs in background -->
+    <div class="glow-blob blob-purple"></div>
+    <div class="glow-blob blob-cyan"></div>
+    <div class="glow-blob blob-blue"></div>
+    
+    <!-- Rising ambient dust particles -->
+    <div id="particles-container"></div>
+    
+    <!-- Central Glassmorphism Login portal -->
+    <div class="glass-card">
+        <div class="welcome-badge">
+            <span class="badge-icon">✨</span>
+            <span class="badge-text">Welcome</span>
         </div>
-        <!-- Top Right Logo -->
-        <a href="{% url 'index' %}" class="minimal-logo">
-            <span>🎮</span> EduPlay
-        </a>
-    </div>
-
-    <!-- Main Centered Portal Card -->
-    <div class="portal-main-card">
-        <h1 class="main-title">Smart Learning Platform</h1>
-        <p class="main-subtitle">Learn, Compete, and Track Your Progress</p>
-
-        <!-- Center Login Options for Focus -->
-        <div class="center-actions-group">
-            <a href="{% url 'student_login' %}" class="large-portal-btn student-btn">
-                <div class="btn-icon">🎓</div>
-                <div class="btn-text">
-                    <span class="btn-label">Student Portal</span>
-                    <span class="btn-desc">Play games & view grades</span>
-                </div>
-                <span class="btn-arrow">▶</span>
+        
+        <h1 class="hero-title">Smart Learning Platform</h1>
+        
+        <p class="hero-tagline">An interactive gamified gateway to explore concepts, solve puzzles, and track progress.</p>
+        
+        <div class="button-group">
+            <a href="{% url 'student_login' %}" class="btn-portal btn-student">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-svg">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+                </svg>
+                <span>Student Login</span>
             </a>
-            <a href="{% url 'teacher_login' %}" class="large-portal-btn teacher-btn">
-                <div class="btn-icon">👨‍🏫</div>
-                <div class="btn-text">
-                    <span class="btn-label">Teacher Portal</span>
-                    <span class="btn-desc">Manage games & track details</span>
-                </div>
-                <span class="btn-arrow">➔</span>
+            
+            <a href="{% url 'teacher_login' %}" class="btn-portal btn-teacher">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-svg">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Teacher Login</span>
             </a>
         </div>
     </div>
 </div>
 
-<!-- Custom Page Overrides and Styling -->
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
 
-    /* Page-specific dark blue theme overrides */
-    body {
-        background: linear-gradient(135deg, #0b0f19 0%, #0f172a 50%, #1e1b4b 100%) !important;
-        color: var(--text-primary) !important;
-        font-family: 'Poppins', 'Inter', sans-serif !important;
-        min-height: 100vh;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow-x: hidden;
-    }
-
-    /* Hide standard navigation bar */
+    /* Hide base.html layout elements that interfere with a full-screen landing page */
     #main-navbar {
         display: none !important;
     }
-
-    /* Footer overrides for light transparency */
+    
     footer {
-        background: transparent !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-        color: var(--text-muted) !important;
-        margin-top: auto;
-        z-index: 10;
+        display: none !important;
     }
 
-    /* Outer Wrapper */
-    .smart-portal-wrapper {
+    body {
+        background: #02040a !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 100vh !important;
+        font-family: 'Inter', 'Poppins', sans-serif !important;
+        overflow-x: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .main-content {
+        padding: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        width: 100% !important;
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Fixed positioned messages alert overlapping */
+    .messages-container {
+        position: fixed !important;
+        top: 2rem !important;
+        right: 2rem !important;
+        left: auto !important;
+        z-index: 10000 !important;
+        max-width: 380px !important;
+        width: 90% !important;
+    }
+
+    /* Main full-screen hero wrapper */
+    .homepage-hero-section {
         position: relative;
         flex: 1;
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 4rem 1.5rem;
+        box-sizing: border-box;
+        background: radial-gradient(circle at 50% 50%, #060514 0%, #030209 60%, #010103 100%);
+    }
+
+    /* Ambient animated blobs */
+    .glow-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(130px);
+        opacity: 0.18;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .blob-purple {
+        background: radial-gradient(circle, #6366f1 0%, transparent 80%);
+        width: 650px;
+        height: 650px;
+        top: -12%;
+        left: -10%;
+        animation: float-blob 24s infinite ease-in-out;
+    }
+
+    .blob-cyan {
+        background: radial-gradient(circle, #06b6d4 0%, transparent 80%);
+        width: 600px;
+        height: 600px;
+        bottom: -15%;
+        right: -10%;
+        animation: float-blob-reverse 28s infinite ease-in-out;
+    }
+
+    .blob-blue {
+        background: radial-gradient(circle, #a855f7 0%, transparent 80%);
+        width: 550px;
+        height: 550px;
+        top: 40%;
+        left: 45%;
+        opacity: 0.12;
+        animation: float-blob 20s infinite ease-in-out 4s;
+    }
+
+    @keyframes float-blob {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+        33% {
+            transform: translate(50px, -30px) scale(1.1);
+        }
+        66% {
+            transform: translate(-30px, 40px) scale(0.95);
+        }
+    }
+
+    @keyframes float-blob-reverse {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+        50% {
+            transform: translate(-60px, 50px) scale(1.12);
+        }
+    }
+
+    /* Floating particles */
+    #particles-container {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: float-particle linear infinite;
+    }
+
+    @keyframes float-particle {
+        0% {
+            transform: translateY(105vh) scale(1);
+            opacity: 0;
+        }
+        8% {
+            opacity: var(--particle-opacity, 0.45);
+        }
+        90% {
+            opacity: var(--particle-opacity, 0.45);
+        }
+        100% {
+            transform: translateY(-5vh) scale(0.3);
+            opacity: 0;
+        }
+    }
+
+    /* Centered Glassmorphism Card */
+    .glass-card {
+        background: rgba(10, 12, 26, 0.45);
+        backdrop-filter: blur(28px) saturate(190%);
+        -webkit-backdrop-filter: blur(28px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 32px;
+        padding: 4.5rem 3.5rem;
+        box-shadow: 
+            0 30px 70px -15px rgba(0, 0, 0, 0.8),
+            inset 0 1px 0px rgba(255, 255, 255, 0.12),
+            0 0 120px rgba(99, 102, 241, 0.03);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 8rem 2rem 4rem 2rem;
-        z-index: 5;
+        text-align: center;
+        z-index: 10;
+        position: relative;
+        max-width: 600px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    /* Minimal Custom Header / Navbar */
-    .minimal-header {
+    /* Card subtle gradient border outline */
+    .glass-card::before {
+        content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        padding: 2.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 100;
+        inset: 0;
+        border-radius: 32px;
+        padding: 1.5px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.01) 40%, rgba(34, 211, 238, 0.16) 100%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
     }
 
-    /* Top Left Pill Buttons */
-    .top-left-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .portal-pill-btn {
+    /* Glowing Welcome Badge */
+    .welcome-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.55rem 1.15rem;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        padding: 0.5rem 1.25rem;
         border-radius: 100px;
-        color: var(--text-secondary);
-        font-size: 0.82rem;
+        color: #d8b4fe;
+        font-size: 0.8rem;
         font-weight: 600;
-        text-decoration: none;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 2rem;
+        box-shadow: 
+            0 4px 15px rgba(168, 85, 247, 0.08),
+            0 0 10px rgba(99, 102, 241, 0.1) inset;
+        animation: badge-glow 4s infinite ease-in-out;
     }
 
-    .portal-pill-btn:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.15);
-        color: #fff;
+    @keyframes badge-glow {
+        0%, 100% {
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+        50% {
+            box-shadow: 0 4px 25px rgba(168, 85, 247, 0.18), 0 0 12px rgba(6, 182, 212, 0.2) inset;
+            border-color: rgba(34, 211, 238, 0.4);
+            color: #e0e7ff;
+        }
     }
 
-    /* Indicator Dots */
-    .dot {
-        display: inline-block;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-    }
-    
-    .student-dot {
-        background: var(--accent-green);
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
-    }
-    
-    .teacher-dot {
-        background: var(--accent-blue);
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    .badge-icon {
+        font-size: 0.9rem;
     }
 
-    /* Top Right Brand Logo */
-    .minimal-logo {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        text-decoration: none;
-    }
-
-    /* Centered Dashboard Card */
-    .portal-main-card {
-        max-width: 650px;
-        width: 100%;
-        text-align: center;
-        padding: 2.5rem 1rem;
-        z-index: 10;
-    }
-
-    /* Typography */
-    .main-title {
+    /* Main Heading */
+    .hero-title {
+        font-family: 'Outfit', 'Poppins', sans-serif;
         font-size: 3.5rem;
-        font-weight: 850;
-        color: #fff;
-        margin: 0 0 0.75rem 0;
-        letter-spacing: -0.04em;
+        font-weight: 800;
         line-height: 1.1;
-        background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
+        letter-spacing: -0.03em;
+        margin: 0 0 1.2rem 0;
+        background: linear-gradient(135deg, #ffffff 20%, #e2e8f0 50%, #a78bfa 75%, #22d3ee 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        color: #fff;
     }
 
-    .main-subtitle {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        margin: 0 0 3.5rem 0;
+    /* Short Tagline */
+    .hero-tagline {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #94a3b8;
+        max-width: 480px;
+        margin: 0 0 3.2rem 0;
         font-weight: 400;
         letter-spacing: -0.01em;
     }
 
-    /* Center Actions Container */
-    .center-actions-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+    /* Buttons Container */
+    .button-group {
+        display: flex;
         gap: 1.5rem;
-        max-width: 580px;
-        margin: 0 auto;
+        width: 100%;
+        justify-content: center;
     }
 
-    /* Stylish Large buttons */
-    .large-portal-btn {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.25rem 1.5rem;
-        background: rgba(30, 41, 59, 0.3);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        text-decoration: none;
-        text-align: left;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-
-    .large-portal-btn:hover {
-        transform: translateY(-4px);
-        background: rgba(30, 41, 59, 0.55);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .student-btn:hover {
-        border-color: rgba(16, 185, 129, 0.35);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(16, 185, 129, 0.08);
-    }
-
-    .teacher-btn:hover {
-        border-color: rgba(6, 182, 212, 0.35);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(6, 182, 212, 0.08);
-    }
-
-    .btn-icon {
-        font-size: 1.75rem;
-        width: 44px;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: var(--radius-sm);
-        display: flex;
+    /* Unified Button Styles */
+    .btn-portal {
+        flex: 1;
+        max-width: 220px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.3s ease;
+        gap: 0.75rem;
+        padding: 1.1rem 1.6rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 16px;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        outline: none;
+        position: relative;
+        overflow: hidden;
     }
 
-    .large-portal-btn:hover .btn-icon {
-        transform: scale(1.05);
+    /* Student Button (Primary Gradient) */
+    .btn-student {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c084fc 100%);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 
+            0 4px 20px rgba(99, 102, 241, 0.28),
+            0 0 0 1px rgba(255, 255, 255, 0.15) inset;
     }
 
-    .btn-text {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-
-    .btn-label {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 0.15rem;
-    }
-
-    .btn-desc {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .btn-arrow {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        transition: transform 0.25s ease, color 0.25s ease;
-    }
-
-    .large-portal-btn:hover .btn-arrow {
-        color: #fff;
-        transform: translateX(3px);
-    }
-
-    /* Subtle Radial Glows */
-    .subtle-glow {
+    .btn-student::after {
+        content: '';
         position: absolute;
-        width: 500px;
-        height: 500px;
-        border-radius: 50%;
-        filter: blur(100px);
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0.75;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
     }
 
-    .glow-left {
-        background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
-        top: -10%;
-        left: -10%;
-        animation: floatGlow 15s infinite ease-in-out;
+    .btn-student:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 
+            0 12px 30px rgba(124, 58, 237, 0.45),
+            0 0 20px rgba(192, 132, 252, 0.35);
     }
 
-    .glow-right {
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
-        bottom: -10%;
-        right: -10%;
-        animation: floatGlow 18s infinite ease-in-out reverse;
+    .btn-student:hover::after {
+        transform: translateX(100%);
     }
 
-    @keyframes floatGlow {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-20px) scale(1.05); }
+    /* Teacher Button (Secondary Outline) */
+    .btn-teacher {
+        background: rgba(255, 255, 255, 0.02);
+        color: #cbd5e1;
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(5px);
     }
 
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-        .minimal-header {
-            padding: 1.5rem;
-        }
+    .btn-teacher:hover {
+        transform: translateY(-4px) scale(1.02);
+        border-color: #22d3ee;
+        color: #ffffff;
+        background: rgba(34, 211, 238, 0.06);
+        box-shadow: 
+            0 12px 30px rgba(34, 211, 238, 0.15),
+            0 0 20px rgba(34, 211, 238, 0.25);
     }
 
+    /* SVG icon interaction */
+    .btn-icon-svg {
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        color: currentColor;
+    }
+
+    .btn-portal:hover .btn-icon-svg {
+        transform: scale(1.18) translateY(-1px);
+    }
+
+    /* Click states */
+    .btn-portal:active {
+        transform: translateY(-1px) scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    /* Responsive scaling */
     @media (max-width: 640px) {
-        .smart-portal-wrapper {
-            padding: 9rem 1.5rem 3rem 1.5rem;
-            align-items: flex-start;
+        .homepage-hero-section {
+            padding: 3rem 1rem;
         }
-        .minimal-header {
-            flex-direction: column-reverse;
-            gap: 1.5rem;
-            align-items: center;
+
+        .glass-card {
+            padding: 3.5rem 1.75rem;
+            border-radius: 26px;
         }
-        .top-left-actions {
-            width: 100%;
-            justify-content: center;
+        
+        .glass-card::before {
+            border-radius: 26px;
         }
-        .portal-pill-btn {
-            flex: 1;
-            justify-content: center;
-        }
-        .main-title {
+
+        .hero-title {
             font-size: 2.5rem;
         }
-        .center-actions-group {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+
+        .hero-tagline {
+            font-size: 1.05rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .button-group {
+            flex-direction: column;
+            align-items: center;
+            gap: 1.1rem;
+        }
+
+        .btn-portal {
+            width: 100%;
+            max-width: 100%;
+            padding: 1.05rem 1.5rem;
         }
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Dynamically spawn floating micro-particles in background for parallax/glowing effect
+    document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById('particles-container');
+        if (!container) return;
+        
+        const isMobile = window.innerWidth < 640;
+        const particleCount = isMobile ? 12 : 28;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            // Varied sizes: 2px to 7px
+            const size = Math.random() * 5 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Random horizontal positioning and scattered vertical delay
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.bottom = `${Math.random() * 100}%`;
+            
+            // Color variations (cyan, purple, white)
+            const randomVal = Math.random();
+            if (randomVal > 0.65) {
+                particle.style.background = 'rgba(34, 211, 238, 0.45)'; // Cyan
+                particle.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.7)';
+                particle.style.setProperty('--particle-opacity', '0.65');
+            } else if (randomVal > 0.3) {
+                particle.style.background = 'rgba(168, 85, 247, 0.45)'; // Purple
+                particle.style.boxShadow = '0 0 10px rgba(168, 85, 247, 0.7)';
+                particle.style.setProperty('--particle-opacity', '0.6');
+            } else {
+                particle.style.background = 'rgba(255, 255, 255, 0.2)';
+                particle.style.setProperty('--particle-opacity', '0.4');
+            }
+            
+            // Randomize speed and offset starting delay
+            const duration = Math.random() * 22 + 12; // 12s to 34s
+            const delay = Math.random() * -22; // negative offset to scatter immediately
+            
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+            
+            container.appendChild(particle);
+        }
+    });
+</script>
 {% endblock %}
