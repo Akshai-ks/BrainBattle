@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.urls import reverse
 from .models import Subject, Student, Game, MCQQuestion, GameAttempt, WordPuzzleQuestion, AnonymousFeedback
 
@@ -366,5 +367,135 @@ class EducationalPlatformTests(TestCase):
         self.student.refresh_from_db()
         from django.contrib.auth.hashers import check_password
         self.assertTrue(check_password('REG100@REG100', self.student.password))
+
+
+class FifaQuizBattleTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.teacher_user = User.objects.create_user(
+            username='teacher_host',
+            email='host@fifa.com',
+            password='password123',
+            is_teacher=True
+        )
+        self.student = Student.objects.create(
+            name='Leo Messi',
+            register_number='LM10',
+            password='hashedpassword'
+        )
+        self.student2 = Student.objects.create(
+            name='Cristiano',
+            register_number='CR7',
+            password='hashedpassword'
+        )
+
+    def test_text_question_parser(self):
+        """Test parsing of questions from raw text files."""
+        from game_core.views import parse_questions_from_text
+        raw_text = """
+        Who won the 2022 World Cup?
+        A) France
+        B) Argentina
+        C) Brazil
+        D) Germany
+        Answer: B
+
+        What color is the football?
+        A) Red
+        B) Green
+        C) White
+        D) Blue
+        Answer: C
+        """
+        questions = parse_questions_from_text(raw_text)
+        self.assertEqual(len(questions), 2)
+        self.assertEqual(questions[0]['question_text'].strip(), "Who won the 2022 World Cup?")
+        self.assertEqual(questions[0]['option_a'], "France")
+        self.assertEqual(questions[0]['option_b'], "Argentina")
+        self.assertEqual(questions[0]['correct_answer'], "B")
+        
+        self.assertEqual(questions[1]['question_text'].strip(), "What color is the football?")
+        self.assertEqual(questions[1]['option_c'], "White")
+        self.assertEqual(questions[1]['correct_answer'], "C")
+
+    def test_round_winner_evaluation(self):
+        """Test correct evaluation of round winner, checking scores, speed, and negative marking."""
+        from game_core.models import FifaGameSession, FifaPlayer, FifaQuestion, FifaAnswerLog
+        session = FifaGameSession.objects.create(
+            host=self.teacher_user,
+            title="FIFA Test Cup",
+            total_questions=5,
+            question_timer=10,
+            status="playing"
+        )
+        
+        questions = []
+        for i in range(5):
+            q = FifaQuestion.objects.create(
+                session=session,
+                question_text=f"Test Question {i}",
+                option_a="A", option_b="B", option_c="C", option_d="D",
+                correct_answer="A",
+                order=i
+            )
+            questions.append(q)
+            
+        player1 = FifaPlayer.objects.create(session=session, student=self.student, group_name="Barca")
+        player2 = FifaPlayer.objects.create(session=session, student=self.student2, group_name="Madrid")
+        
+        # Log answers for Player 1 (5 correct answers, each 1 second)
+        for q in questions:
+            FifaAnswerLog.objects.create(
+                player=player1,
+                question=q,
+                selected_option="A",
+                is_correct=True,
+                time_taken=1.0
+            )
+            
+        # Log answers for Player 2 (4 correct answers, 1 wrong option)
+        for i, q in enumerate(questions):
+            if i < 4:
+                FifaAnswerLog.objects.create(
+                    player=player2,
+                    question=q,
+                    selected_option="A",
+                    is_correct=True,
+                    time_taken=1.0
+                )
+            else:
+                FifaAnswerLog.objects.create(
+                    player=player2,
+                    question=q,
+                    selected_option="B",
+                    is_correct=False,
+                    time_taken=2.0
+                )
+                
+        start_idx = 0
+        end_idx = 5
+        round_questions = session.questions.filter(order__gte=start_idx, order__lt=end_idx)
+        
+        eligible_players = []
+        for player in [player1, player2]:
+            logs = FifaAnswerLog.objects.filter(player=player, question__in=round_questions)
+            correct_count = logs.filter(is_correct=True).count()
+            incorrect_count = logs.filter(is_correct=False).count()
+            
+            total_score = sum(10 if log.is_correct else -2 for log in logs)
+            total_time = sum(log.time_taken for log in logs if log.is_correct)
+            
+            is_eligible = (correct_count >= 3 and incorrect_count == 0)
+            if is_eligible:
+                eligible_players.append({
+                    'player': player,
+                    'score': total_score,
+                    'time': total_time
+                })
+                
+        self.assertEqual(len(eligible_players), 1)
+        self.assertEqual(eligible_players[0]['player'], player1)
+        self.assertEqual(eligible_players[0]['score'], 50)
+        self.assertEqual(eligible_players[0]['time'], 5.0)
 
 

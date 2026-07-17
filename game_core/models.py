@@ -1,5 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    is_teacher = models.BooleanField(default=False)
 
 class Subject(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -185,4 +188,84 @@ class GameEntry(models.Model):
 
     def __str__(self):
         return f"{self.student.name} entered {self.game.title} at {self.entry_time}"
+
+
+class FifaGameSession(models.Model):
+    STATUS_CHOICES = [
+        ('waiting', 'Lobby (Waiting for players)'),
+        ('playing', 'Game In Progress'),
+        ('completed', 'Game Completed'),
+    ]
+
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fifa_sessions')
+    title = models.CharField(max_length=200, default="FIFA Quiz Battle")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
+    current_round = models.IntegerField(default=1)
+    current_question_index = models.IntegerField(default=0)  # 0-based index
+    question_timer = models.IntegerField(default=10, help_text="Question duration in seconds")
+    total_questions = models.IntegerField(default=5, help_text="Total questions (max 25)")
+    questions_per_round = models.IntegerField(default=3, help_text="Number of questions per round")
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.title} - Session {self.id} (Status: {self.status})"
+
+
+class FifaPlayer(models.Model):
+    session = models.ForeignKey(FifaGameSession, on_delete=models.CASCADE, related_name='players')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='fifa_players')
+    group_name = models.CharField(max_length=100)
+    is_ready = models.BooleanField(default=False)
+    wins = models.IntegerField(default=0)
+    is_disqualified = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('session', 'student')
+
+    def __str__(self):
+        return f"{self.student.name} ({self.group_name}) in Session {self.session.id}"
+
+
+class FifaQuestion(models.Model):
+    session = models.ForeignKey(FifaGameSession, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    option_a = models.CharField(max_length=255)
+    option_b = models.CharField(max_length=255)
+    option_c = models.CharField(max_length=255)
+    option_d = models.CharField(max_length=255)
+    correct_answer = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')])
+    order = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Q{self.order + 1}: {self.question_text[:50]}"
+
+
+class FifaAnswerLog(models.Model):
+    player = models.ForeignKey(FifaPlayer, on_delete=models.CASCADE, related_name='answer_logs')
+    question = models.ForeignKey(FifaQuestion, on_delete=models.CASCADE)
+    selected_option = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')], null=True, blank=True)
+    is_correct = models.BooleanField(default=False)
+    time_taken = models.FloatField(default=0.0)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('player', 'question')
+
+    def __str__(self):
+        status = "Correct" if self.is_correct else "Incorrect"
+        return f"{self.player.student.name} - Q {self.question.order + 1} - {status}"
+
+
+class FifaRound(models.Model):
+    session = models.ForeignKey(FifaGameSession, on_delete=models.CASCADE, related_name='rounds')
+    round_number = models.IntegerField()
+    is_completed = models.BooleanField(default=False)
+    winner = models.ForeignKey(FifaPlayer, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_rounds')
+
+    class Meta:
+        unique_together = ('session', 'round_number')
+
+    def __str__(self):
+        return f"Session {self.session.id} - Round {self.round_number}"
 

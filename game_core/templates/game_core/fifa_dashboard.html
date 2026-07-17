@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FIFA Quiz Battle - Dashboard{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem; font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <!-- Dashboard Header -->
+    <div style="background: linear-gradient(135deg, #115e59 0%, #075985 100%); padding: 2.5rem; border-radius: 16px; color: white; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -50px; bottom: -50px; opacity: 0.1; font-size: 15rem; transform: rotate(-15deg);">⚽</div>
+        <h1 style="margin: 0; font-size: 2.5rem; font-weight: 800; letter-spacing: -0.5px;">⚽ FIFA Quiz Battle</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1.1rem;">Host live real-time quiz matches and watch your students compete on the football field!</p>
+        <div style="margin-top: 1.5rem;">
+            <a href="{% url 'fifa_setup_game' %}" style="display: inline-flex; align-items: center; background: #facc15; color: #1e293b; padding: 0.75rem 1.5rem; border-radius: 30px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(250, 204, 21, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(250, 204, 21, 0.4)'">
+                <span>➕ Create New Match</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Sessions Section -->
+    <h2 style="font-size: 1.5rem; color: #1e293b; font-weight: 700; margin-bottom: 1rem;">Active & Upcoming Sessions</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        {% for session in sessions %}
+            {% if session.status != 'completed' %}
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; position: relative; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <span style="font-weight: 700; font-size: 1.2rem; color: #0f172a;">{{ session.title }}</span>
+                        <span style="background: {% if session.status == 'playing' %}#dbeafe; color: #2563eb;{% else %}#fef9c3; color: #ca8a04;{% endif %}; padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                            {{ session.get_status_display }}
+                        </span>
+                    </div>
+                    <div style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        <div>⏱️ Timer: <strong>{{ session.question_timer }}s</strong> per question</div>
+                        <div>❓ Questions: <strong>{{ session.total_questions }}</strong></div>
+                        <div style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.8;">Created: {{ session.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                    <a href="{% url 'fifa_teacher_lobby' session.id %}" style="flex: 2; text-align: center; background: #0ea5e9; color: white; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+                        Enter Lobby
+                    </a>
+                    <a href="{% url 'fifa_edit_game' session.id %}" style="background: #f1f5f9; color: #475569; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; border: 1px solid #cbd5e1; transition: background 0.2s; text-align: center;" title="Edit Match" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        ✏️
+                    </a>
+                    <a href="{% url 'fifa_delete_game' session.id %}" onclick="return confirm('Are you sure you want to delete this match session?');" style="background: #fee2e2; color: #ef4444; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; border: 1px solid #fecaca; transition: background 0.2s; text-align: center;" title="Delete Match" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                        🗑️
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% empty %}
+            <div style="grid-column: 1 / -1; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 3rem; text-align: center; color: #64748b;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎮</div>
+                <h3 style="margin: 0; color: #475569;">No active sessions</h3>
+                <p style="margin: 0.25rem 0 1rem 0; font-size: 0.9rem;">Click the button above to host a new FIFA Quiz Battle.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Completed Sessions Section -->
+    <h2 style="font-size: 1.5rem; color: #1e293b; font-weight: 700; margin-bottom: 1rem;">Past Matches & Analytics</h2>
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Quiz Title</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Date Played</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Questions</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Joined Players</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                    {% if session.status == 'completed' %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 1rem 1.5rem; font-weight: 600; color: #0f172a;">{{ session.title }}</td>
+                        <td style="padding: 1rem 1.5rem; color: #64748b; font-size: 0.9rem;">{{ session.created_at|date:"M d, Y - H:i" }}</td>
+                        <td style="padding: 1rem 1.5rem; color: #64748b; font-size: 0.9rem;">{{ session.total_questions }}</td>
+                        <td style="padding: 1rem 1.5rem; color: #64748b; font-size: 0.9rem;">{{ session.players.count }} groups</td>
+                        <td style="padding: 1rem 1.5rem; text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            <a href="{% url 'fifa_teacher_analytics' session.id %}" style="display: inline-block; background: #f1f5f9; color: #334155; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                                📊 View Insights
+                            </a>
+                            <a href="{% url 'fifa_delete_game' session.id %}" onclick="return confirm('Are you sure you want to delete this past match?');" style="display: inline-block; background: #fee2e2; color: #ef4444; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.85rem; border: 1px solid #fecaca; transition: background 0.2s;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                                🗑️ Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 3rem; text-align: center; color: #94a3b8;">
+                            No completed sessions found. Complete a match to view analytics.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

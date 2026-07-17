@@ -1,0 +1,1103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FIFA Quiz Battle - Host Lobby{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 1rem auto; padding: 0 1rem; font-family: 'Outfit', 'Segoe UI', sans-serif;">
+    <!-- Connection Status Banner -->
+    <div id="connectionStatus" style="background: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-align: center; margin-bottom: 1rem; display: none;">
+        ⚠️ Disconnected from server. Reconnecting...
+    </div>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <div id="mainContainer">
+        
+        <!-- ================= LOBBY STATE ================= -->
+        <div id="lobbyView" style="display: block;">
+            <div style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); padding: 2.5rem; border-radius: 16px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); margin-bottom: 2rem; position: relative;">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem; animation: float 3s ease-in-out infinite;">⚽</div>
+                <h1 style="margin: 0; font-size: 2.5rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">FIFA QUIZ BATTLE LOBBY</h1>
+                <p style="margin: 0.5rem 0 1.5rem 0; opacity: 0.9; font-size: 1.1rem;">Waiting for students to join and ready up...</p>
+                
+                <div style="display: inline-flex; gap: 2rem; background: rgba(0,0,0,0.2); padding: 1rem 2rem; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
+                    <div>Joined: <strong id="lobbyJoinedCount" style="font-size: 1.5rem; color: #facc15;">0</strong></div>
+                    <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
+                    <div>Ready: <strong id="lobbyReadyCount" style="font-size: 1.5rem; color: #4ade80;">0</strong></div>
+                </div>
+
+                <div>
+                    <button id="startGameBtn" disabled style="background: #94a3b8; color: #1e293b; border: none; padding: 1rem 3rem; border-radius: 30px; font-weight: 800; font-size: 1.25rem; cursor: not-allowed; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s;">
+                        Start Game
+                    </button>
+                </div>
+                <div style="margin-top: 1.25rem;">
+                    <a href="{% url 'fifa_present_game' session.id %}" target="_blank" style="display: inline-block; background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.3); color: white; padding: 0.6rem 2rem; border-radius: 30px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                        🖥️ Open Presentation Screen (Class Projection View)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Student Grid -->
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <h3 style="margin-top: 0; font-size: 1.3rem; color: #1e293b; font-weight: 700; margin-bottom: 1.5rem; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 0.75rem;">Joined Players</h3>
+                <div id="lobbyPlayersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PLAYING STATE ================= -->
+        <div id="playingView" style="display: none;">
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                
+                <!-- Left: Question Area -->
+                <div>
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 2rem; position: relative;">
+                        <!-- Timer and Q Index -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <span style="font-weight: 700; color: #64748b; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;" id="qIndexText">Question 1 of 5</span>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; background: #fee2e2; color: #ef4444; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 800; font-size: 1.1rem;" id="timerBadge">
+                                ⏱️ <span id="timerCountdown">12</span>s
+                            </div>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h2 id="questionText" style="color: #0f172a; font-size: 1.6rem; font-weight: 800; line-height: 1.4; margin-bottom: 2rem;">
+                            Loading question...
+                        </h2>
+
+                        <!-- Options Display (Static Preview for Host) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                            <div id="optA" style="padding: 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: #475569;">A) Loading...</div>
+                            <div id="optB" style="padding: 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: #475569;">B) Loading...</div>
+                            <div id="optC" style="padding: 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: #475569;">C) Loading...</div>
+                            <div id="optD" style="padding: 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: #475569;">D) Loading...</div>
+                        </div>
+
+                        <!-- Host Actions -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid #f1f5f9; padding-top: 1.5rem;">
+                            <span style="color: #64748b; font-size: 0.9rem; font-style: italic; font-weight: 600;">🔄 Match advances automatically after reveal.</span>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button id="revealBtn" style="background: #0ea5e9; color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
+                                    Force Reveal Answer
+                                </button>
+                                <button id="nextRoundBtn" style="display: none; background: #10b981; color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                    ⚽ Start Next Level
+                                </button>
+                            </div>
+                            <button id="nextBtn" style="display: none;"></button>
+                        </div>
+                    </div>
+
+                    <!-- Answers Statistics (Hidden during active question, visible after reveal) -->
+                    <div id="statsSection" style="display: none; background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                        <h3 style="margin-top: 0; font-size: 1.2rem; color: #1e293b; font-weight: 700; margin-bottom: 1.5rem;">Question Results</h3>
+                        
+                        <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem;">
+                            <div style="text-align: center; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 1rem 2rem;">
+                                <div style="font-size: 0.85rem; color: #15803d; font-weight: 700; text-transform: uppercase;">Correct Answer</div>
+                                <div id="correctAnswerBadge" style="font-size: 2rem; font-weight: 800; color: #166534; margin-top: 0.25rem;">A</div>
+                            </div>
+                            <div style="flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;" id="optionsCountGrid">
+                                <!-- Option percentage progress bars -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Active Players Responses Grid -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); height: fit-content;">
+                    <h3 style="margin-top: 0; font-size: 1.2rem; color: #1e293b; font-weight: 700; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between;">
+                        <span>Submissions</span>
+                        <span id="submissionFraction" style="color: #64748b; font-size: 0.95rem;">0/0</span>
+                    </h3>
+                    <div id="playingPlayersGrid" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SHOOTOUT ANIMATION OVERLAY MODAL ================= -->
+        <div id="animationOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; padding: 2rem;">
+            <div style="position: absolute; top: 1.5rem; left: 2rem; background: rgba(255,255,255,0.1); color: white; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 800; font-size: 1.2rem;" id="animationTitleText">
+                Round Evaluation
+            </div>
+            <div style="position: absolute; top: 1.5rem; right: 2rem; z-index: 10;">
+                <button id="skipAnimBtn" style="background: #facc15; border: none; color: #000; padding: 0.6rem 1.5rem; border-radius: 20px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    Skip Animation
+                </button>
+            </div>
+            <div style="width: 100%; max-width: 1000px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.15);">
+                <canvas id="animCanvas" width="1160" height="500" style="display: block; width: 100%; height: auto; background: #15803d; border-radius: 12px;"></canvas>
+            </div>
+        </div>
+
+        <!-- ================= COMPLETED SCREEN ================= -->
+        <div id="completedView" style="display: none;">
+            <div style="background: radial-gradient(circle, #1e3a1e 0%, #0c1a0c 100%); padding: 4rem 2rem; border-radius: 16px; color: white; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); position: relative; overflow: hidden;">
+                <!-- Confetti & Trophy -->
+                <div style="font-size: 6rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite;">🏆</div>
+                <h1 style="font-size: 3rem; font-weight: 900; color: #facc15; margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+                    CHAMPION OF FIFA QUIZ BATTLE
+                </h1>
+                
+                <div style="margin: 2rem auto; max-width: 500px; background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+                    <div style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; color: #a7f3d0; font-weight: 700;">Winning Group</div>
+                    <div id="champGroupName" style="font-size: 2.2rem; font-weight: 800; color: white; margin: 0.5rem 0;">Real Madrid</div>
+                    <div style="font-size: 1.1rem; opacity: 0.9; margin-top: 0.5rem;">Player: <strong id="champPlayerName">Lionel Messi</strong></div>
+                </div>
+
+                <!-- Final standings visual pitch leaderboard -->
+                <div style="margin: 2.5rem auto; max-width: 800px; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.1);">
+                    <h3 style="color: #facc15; font-weight: 800; font-size: 1.3rem; margin-top: 0; margin-bottom: 1.25rem; text-align: center;">🏆 FINAL FIELD STANDINGS</h3>
+                    <canvas id="finalStandingsCanvas" width="800" height="350" style="display: block; width: 100%; height: auto; background: #15803d; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.2);"></canvas>
+                </div>
+
+                <div style="margin-top: 3rem;">
+                    <a id="analyticsBtn" href="#" style="background: #10b981; color: white; padding: 1rem 3rem; border-radius: 30px; font-weight: 800; font-size: 1.2rem; text-decoration: none; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        📊 View Match Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ALWAYS-ON PITCH LEADERBOARD ================= -->
+        <div id="pitchLeaderboardSection" style="margin-top: 2.5rem; background: rgba(21, 128, 61, 0.05); border: 2px solid #15803d; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+            <h3 style="margin-top: 0; font-size: 1.4rem; color: #15803d; font-weight: 800; text-transform: uppercase; margin-bottom: 1.5rem; text-align: center;">
+                ⚽ Live Pitch Standings (Always On)
+            </h3>
+            <canvas id="leaderboardCanvas" width="1160" height="400" style="display: block; width: 100%; height: auto; background: #15803d; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.2);"></canvas>
+        </div>
+
+    </div>
+</div>
+
+<style>
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+</style>
+
+<script>
+    // Sound Synth Manager
+    class SoundManager {
+        constructor() {
+            this.ctx = null;
+        }
+        init() {
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        playTick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.06);
+        }
+        playGoal() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            // Whistle Blow (High frequency sine sweep)
+            let osc1 = this.ctx.createOscillator();
+            let gain1 = this.ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(this.ctx.destination);
+            osc1.frequency.setValueAtTime(2000, this.ctx.currentTime);
+            osc1.frequency.linearRampToValueAtTime(2200, this.ctx.currentTime + 0.15);
+            osc1.frequency.linearRampToValueAtTime(2000, this.ctx.currentTime + 0.3);
+            gain1.gain.setValueAtTime(0.1, this.ctx.currentTime);
+            gain1.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.2);
+            gain1.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+            osc1.start();
+            osc1.stop(this.ctx.currentTime + 0.4);
+
+            // Crowd Cheering (Filtered White Noise)
+            setTimeout(() => {
+                let bufferSize = 2 * this.ctx.sampleRate;
+                let noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                let output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+                let whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+
+                let filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1000;
+                filter.Q.value = 1.5;
+
+                let gainNode = this.ctx.createGain();
+                whiteNoise.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+
+                gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.3);
+                gainNode.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 1.0);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.0);
+
+                whiteNoise.start();
+                whiteNoise.stop(this.ctx.currentTime + 2.0);
+            }, 300);
+        }
+        playMiss() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            // Disappointment Groan/Sigh Synth
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.7);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.75);
+        }
+        playKick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.15);
+        }
+    }
+
+    const sound = new SoundManager();
+
+    // WS Connection
+    const sessionId = "{{ session.id }}";
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socketUrl = wsScheme + '://' + window.location.host + '/ws/fifa/' + sessionId + '/';
+    let socket = new WebSocket(socketUrl);
+
+    // DOM Elements
+    const lobbyView = document.getElementById('lobbyView');
+    const playingView = document.getElementById('playingView');
+    const animationOverlay = document.getElementById('animationOverlay');
+    const completedView = document.getElementById('completedView');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const nextRoundBtn = document.getElementById('nextRoundBtn');
+
+    const lobbyJoinedCount = document.getElementById('lobbyJoinedCount');
+    const lobbyReadyCount = document.getElementById('lobbyReadyCount');
+    const startGameBtn = document.getElementById('startGameBtn');
+    const lobbyPlayersGrid = document.getElementById('lobbyPlayersGrid');
+
+    const questionText = document.getElementById('questionText');
+    const qIndexText = document.getElementById('qIndexText');
+    const timerCountdown = document.getElementById('timerCountdown');
+    const revealBtn = document.getElementById('revealBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const playingPlayersGrid = document.getElementById('playingPlayersGrid');
+    const submissionFraction = document.getElementById('submissionFraction');
+    const statsSection = document.getElementById('statsSection');
+    const correctAnswerBadge = document.getElementById('correctAnswerBadge');
+    const optionsCountGrid = document.getElementById('optionsCountGrid');
+
+    const optA = document.getElementById('optA');
+    const optB = document.getElementById('optB');
+    const optC = document.getElementById('optC');
+    const optD = document.getElementById('optD');
+
+    const animCanvas = document.getElementById('animCanvas');
+    const ctx = animCanvas.getContext('2d');
+    const skipAnimBtn = document.getElementById('skipAnimBtn');
+    const animationTitleText = document.getElementById('animationTitleText');
+
+    const champGroupName = document.getElementById('champGroupName');
+    const champPlayerName = document.getElementById('champPlayerName');
+    const analyticsBtn = document.getElementById('analyticsBtn');
+
+    // State Variables
+    let joinedPlayers = [];
+    let timerInterval = null;
+    let timerSeconds = 12;
+    let activeQuestionId = null;
+    let currentQuestionIndex = 0;
+    let answeredPlayers = new Set();
+    let animationFrameId = null;
+    let skipAnimation = false;
+
+    // WebSocket Listeners
+    socket.onopen = function() {
+        connectionStatus.style.display = 'none';
+    };
+
+    socket.onclose = function() {
+        connectionStatus.style.display = 'block';
+        // Auto-reconnect in 3s
+        setTimeout(() => {
+            socket = new WebSocket(socketUrl);
+        }, 3000);
+    };
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("WebSocket Message Received:", data);
+
+        if (data.type === 'lobby_state' || data.type === 'broadcast_lobby_state') {
+            updateLobbyState(data);
+        } else if (data.type === 'broadcast_question') {
+            loadQuestion(data);
+        } else if (data.type === 'broadcast_player_submitted') {
+            playerAnswered(data);
+        } else if (data.type === 'broadcast_reveal') {
+            revealQuestionResults(data);
+        } else if (data.type === 'broadcast_round_completed') {
+            runRoundAnimation(data);
+        } else if (data.type === 'broadcast_game_completed') {
+            runGameCompleted(data);
+        }
+    };
+
+    // Actions
+    startGameBtn.onclick = function() {
+        socket.send(JSON.stringify({ 'action': 'start_game' }));
+    };
+
+    revealBtn.onclick = function() {
+        socket.send(JSON.stringify({
+            'action': 'timer_ended',
+            'question_id': activeQuestionId
+        }));
+    };
+
+    nextBtn.onclick = function() {
+        socket.send(JSON.stringify({ 'action': 'next_question' }));
+    };
+
+    nextRoundBtn.onclick = function() {
+        nextRoundBtn.style.display = 'none';
+        socket.send(JSON.stringify({ 'action': 'next_question' }));
+    };
+
+    skipAnimBtn.onclick = function() {
+        skipAnimation = true;
+    };
+
+    // UI Updates
+    function drawLivePitchLeaderboard(results) {
+        const lCanvas = document.getElementById('leaderboardCanvas');
+        if (!lCanvas) return;
+        const lCtx = lCanvas.getContext('2d');
+        const w = lCanvas.width;
+        const h = lCanvas.height;
+
+        lCtx.fillStyle = '#15803d';
+        lCtx.fillRect(0, 0, w, h);
+
+        lCtx.strokeStyle = 'white';
+        lCtx.lineWidth = 3;
+        lCtx.strokeRect(30, 30, w - 60, h - 60);
+
+        lCtx.beginPath();
+        lCtx.moveTo(w/2, 30);
+        lCtx.lineTo(w/2, h - 30);
+        lCtx.stroke();
+
+        lCtx.beginPath();
+        lCtx.arc(w/2, h/2, 50, 0, Math.PI*2);
+        lCtx.stroke();
+
+        lCtx.fillStyle = 'rgba(255,255,255,0.1)';
+        lCtx.fillRect(30, h/2 - 40, 20, 80);
+        lCtx.fillRect(w - 50, h/2 - 40, 20, 80);
+
+        let pList = [];
+        if (Array.isArray(results)) {
+            pList = results.map(p => ({ group: p.group_name, name: p.name, wins: p.wins || 0 }));
+        } else if (results && typeof results === 'object') {
+            pList = Object.keys(results).map(k => ({ group: results[k].group, name: results[k].name, wins: results[k].wins }));
+        }
+
+        let numP = pList.length || 1;
+        let laneH = (h - 80) / numP;
+
+        pList.forEach((p, idx) => {
+            let laneY = 40 + idx * laneH;
+
+            lCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+            lCtx.lineWidth = 1;
+            lCtx.beginPath();
+            lCtx.moveTo(30, laneY + laneH);
+            lCtx.lineTo(w - 30, laneY + laneH);
+            lCtx.stroke();
+
+            lCtx.fillStyle = '#cbd5e1';
+            lCtx.font = 'bold 12px sans-serif';
+            lCtx.textAlign = 'left';
+            lCtx.fillText(`${p.group} (${p.name})`, 50, laneY + 20);
+
+            let startX = 200;
+            let endX = w - 100;
+            let playerX = startX + (p.wins / 5) * (endX - startX);
+            let playerY = laneY + laneH/2 + 8;
+
+            lCtx.fillStyle = '#94a3b8';
+            lCtx.strokeStyle = '#475569';
+            lCtx.lineWidth = 2;
+            
+            lCtx.beginPath();
+            lCtx.arc(playerX, playerY - 10, 6, 0, Math.PI*2);
+            lCtx.fill();
+            lCtx.stroke();
+
+            lCtx.fillStyle = '#64748b';
+            lCtx.fillRect(playerX - 4, playerY - 4, 8, 8);
+
+            lCtx.strokeStyle = '#475569';
+            lCtx.lineWidth = 2;
+            lCtx.beginPath();
+            lCtx.moveTo(playerX - 2, playerY + 4);
+            lCtx.lineTo(playerX - 2, playerY + 9);
+            lCtx.moveTo(playerX + 2, playerY + 4);
+            lCtx.lineTo(playerX + 2, playerY + 9);
+            lCtx.stroke();
+
+            lCtx.fillStyle = 'white';
+            lCtx.strokeStyle = 'black';
+            lCtx.lineWidth = 1;
+            lCtx.beginPath();
+            lCtx.arc(playerX + 8, playerY + 8, 5, 0, Math.PI*2);
+            lCtx.fill();
+            lCtx.stroke();
+        });
+    }
+
+    function updateLobbyState(data) {
+        lobbyJoinedCount.innerText = data.total_count;
+        lobbyReadyCount.innerText = data.ready_count;
+        joinedPlayers = data.players;
+
+        lobbyPlayersGrid.innerHTML = '';
+        joinedPlayers.forEach(p => {
+            const playerCard = document.createElement('div');
+            playerCard.style.background = '#f8fafc';
+            playerCard.style.border = p.is_ready ? '2.5px solid #22c55e' : '1.5px solid #e2e8f0';
+            playerCard.style.borderRadius = '10px';
+            playerCard.style.padding = '1rem';
+            playerCard.style.textAlign = 'center';
+            playerCard.style.boxShadow = '0 2px 4px rgba(0,0,0,0.01)';
+            
+            playerCard.innerHTML = `
+                <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">🏃‍♂️</div>
+                <div style="font-weight: 700; color: #1e293b;">${p.name}</div>
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Group: ${p.group_name}</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; font-weight: 800; color: ${p.is_ready ? '#16a34a' : '#64748b'}; text-transform: uppercase;">
+                    ${p.is_ready ? '✅ READY' : '⏳ WAITING'}
+                </div>
+            `;
+            lobbyPlayersGrid.appendChild(playerCard);
+        });
+
+        if (data.total_count > 0) {
+            startGameBtn.disabled = false;
+            startGameBtn.style.background = '#10b981';
+            startGameBtn.style.color = 'white';
+            startGameBtn.style.cursor = 'pointer';
+            startGameBtn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.2)';
+        } else {
+            startGameBtn.disabled = true;
+            startGameBtn.style.background = '#94a3b8';
+            startGameBtn.style.color = '#1e293b';
+            startGameBtn.style.cursor = 'not-allowed';
+            startGameBtn.style.boxShadow = 'none';
+        }
+
+        // Draw players on the starting line
+        drawLivePitchLeaderboard(joinedPlayers);
+    }
+
+    function loadQuestion(data) {
+        lobbyView.style.display = 'none';
+        playingView.style.display = 'block';
+        animationOverlay.style.display = 'none';
+        completedView.style.display = 'none';
+
+        currentQuestionIndex = data.question_index;
+        activeQuestionId = data.question_id;
+
+        qIndexText.innerText = `Question ${currentQuestionIndex + 1}`;
+        questionText.innerText = data.question_text;
+
+        optA.innerText = `A) ${data.option_a}`;
+        optB.innerText = `B) ${data.option_b}`;
+        optC.innerText = `C) ${data.option_c}`;
+        optD.innerText = `D) ${data.option_d}`;
+
+        optA.style.background = 'white';
+        optA.style.borderColor = '#cbd5e1';
+        optB.style.background = 'white';
+        optB.style.borderColor = '#cbd5e1';
+        optC.style.background = 'white';
+        optC.style.borderColor = '#cbd5e1';
+        optD.style.background = 'white';
+        optD.style.borderColor = '#cbd5e1';
+
+        answeredPlayers.clear();
+        updateSubmissionsGrid();
+
+        statsSection.style.display = 'none';
+        revealBtn.style.display = 'block';
+        nextBtn.style.display = 'none';
+
+        // Start countdown timer
+        clearInterval(timerInterval);
+        timerSeconds = data.timer_seconds;
+        timerCountdown.innerText = timerSeconds;
+
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            timerCountdown.innerText = timerSeconds;
+            if (timerSeconds <= 3 && timerSeconds > 0) {
+                sound.playTick();
+            }
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                // Host forces trigger ending if not done
+                if (revealBtn.style.display !== 'none') {
+                    socket.send(JSON.stringify({
+                        'action': 'timer_ended',
+                        'question_id': activeQuestionId
+                    }));
+                }
+            }
+        }, 1000);
+    }
+
+    function playerAnswered(data) {
+        answeredPlayers.add(data.player_id);
+        updateSubmissionsGrid();
+    }
+
+    function updateSubmissionsGrid() {
+        submissionFraction.innerText = `${answeredPlayers.size}/${joinedPlayers.length}`;
+        playingPlayersGrid.innerHTML = '';
+        joinedPlayers.forEach(p => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.alignItems = 'center';
+            row.style.padding = '0.75rem 1rem';
+            row.style.background = '#f8fafc';
+            row.style.border = '1px solid #e2e8f0';
+            row.style.borderRadius = '8px';
+
+            const submitted = answeredPlayers.has(p.id);
+            row.innerHTML = `
+                <div>
+                    <span style="font-weight: 700; color: #1e293b;">${p.name}</span>
+                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 0.5rem;">Group: ${p.group_name}</span>
+                </div>
+                <span style="font-weight: 800; font-size: 0.8rem; color: ${submitted ? '#16a34a' : '#ea580c'}; padding: 0.25rem 0.5rem; border-radius: 4px; background: ${submitted ? '#f0fdf4' : '#fff7ed'}; border: 1.1px solid ${submitted ? '#bbf7d0' : '#ffedd5'};">
+                    ${submitted ? 'LOCK 🔒' : 'THINKING ⏳'}
+                </span>
+            `;
+            playingPlayersGrid.appendChild(row);
+        });
+    }
+
+    function revealQuestionResults(data) {
+        clearInterval(timerInterval);
+        revealBtn.style.display = 'none';
+        nextBtn.style.display = 'block';
+        statsSection.style.display = 'block';
+
+        const correct = data.correct_answer;
+        correctAnswerBadge.innerText = correct;
+
+        // Highlight correct options green and incorrect red
+        const opts = {'A': optA, 'B': optB, 'C': optC, 'D': optD};
+        Object.keys(opts).forEach(k => {
+            if (k === correct) {
+                opts[k].style.background = '#f0fdf4';
+                opts[k].style.borderColor = '#22c55e';
+                opts[k].style.color = '#15803d';
+            } else {
+                opts[k].style.background = 'white';
+                opts[k].style.borderColor = '#cbd5e1';
+                opts[k].style.color = '#475569';
+            }
+        });
+
+        // Compute counts
+        let counts = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'timeout': 0};
+        let total = 0;
+        Object.values(data.submissions).forEach(sub => {
+            total++;
+            if (sub.option) {
+                counts[sub.option]++;
+            } else {
+                counts['timeout']++;
+            }
+        });
+
+        optionsCountGrid.innerHTML = '';
+        ['A', 'B', 'C', 'D'].forEach(opt => {
+            const count = counts[opt];
+            const pct = total > 0 ? (count / total * 100) : 0;
+            const bar = document.createElement('div');
+            bar.style.textAlign = 'center';
+            bar.innerHTML = `
+                <div style="font-weight: 800; font-size: 1.1rem; color: ${opt === correct ? '#16a34a' : '#475569'};">${opt}</div>
+                <div style="background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; margin: 0.25rem 0;">
+                    <div style="background: ${opt === correct ? '#22c55e' : '#64748b'}; width: ${pct}%; height: 100%;"></div>
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: #64748b;">${count} answers</div>
+            `;
+            optionsCountGrid.appendChild(bar);
+        });
+
+        // Add correct/incorrect overlay tags to player list
+        playingPlayersGrid.innerHTML = '';
+        joinedPlayers.forEach(p => {
+            const sub = data.submissions[p.id];
+            const has_sub = !!sub;
+            const is_correct = has_sub && sub.is_correct;
+            const option_selected = has_sub ? (sub.option || 'None') : 'None';
+            const time_taken = has_sub ? (sub.time_taken.toFixed(1) + 's') : '-';
+
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.alignItems = 'center';
+            row.style.padding = '0.75rem 1rem';
+            row.style.background = is_correct ? '#f0fdf4' : '#fef2f2';
+            row.style.border = '1px solid ' + (is_correct ? '#bbf7d0' : '#fecaca');
+            row.style.borderRadius = '8px';
+
+            row.innerHTML = `
+                <div>
+                    <span style="font-weight: 700; color: #1e293b;">${p.name}</span>
+                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 0.5rem;">Group: ${p.group_name}</span>
+                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 0.5rem;">Option: <strong>${option_selected}</strong> (${time_taken})</span>
+                </div>
+                <span style="font-weight: 800; font-size: 0.8rem; color: ${is_correct ? '#16a34a' : '#ef4444'};">
+                    ${is_correct ? 'CORRECT +10' : 'INCORRECT -2'}
+                </span>
+            `;
+            playingPlayersGrid.appendChild(row);
+        });
+    }
+
+    // ==========================================
+    // FIFA BATTLE ANIMATION SYSTEM ON CANVAS
+    // ==========================================
+    function runRoundAnimation(data) {
+        animationOverlay.style.display = 'flex';
+        skipAnimBtn.style.display = 'block';
+        nextRoundBtn.style.display = 'none';
+
+        let roundNum = data.round_number;
+        let winnerId = data.winner_id;
+        let results = data.players_results;
+        animationTitleText.innerText = `Round ${roundNum} Evaluation`;
+
+        skipAnimation = false;
+
+        let canvasWidth = animCanvas.width;
+        let canvasHeight = animCanvas.height;
+
+        let startTime = Date.now();
+        let shootoutDuration = 15000; // 15 seconds for sequential penalty kicks
+        let progressDuration = 5000; // 5 seconds for visual field progress reveal
+        let animDuration = shootoutDuration + progressDuration; // 20 seconds total
+
+        let playerKeys = Object.keys(results);
+        let numPlayers = playerKeys.length || 1;
+        let turnDuration = shootoutDuration / numPlayers;
+        let particles = [];
+        window.soundTriggered = {};
+
+        function drawVisualLeaderboard(elapsedTime) {
+            ctx.fillStyle = '#15803d'; 
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+            
+            ctx.beginPath();
+            ctx.moveTo(canvasWidth/2, 40);
+            ctx.lineTo(canvasWidth/2, canvasHeight - 40);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(canvasWidth/2, canvasHeight/2, 60, 0, Math.PI*2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(40, canvasHeight/2 - 50, 20, 100);
+            ctx.fillRect(canvasWidth - 60, canvasHeight/2 - 50, 20, 100);
+
+            let laneHeight = (canvasHeight - 100) / Math.max(numPlayers, 1);
+
+            playerKeys.forEach((key, idx) => {
+                let pRes = results[key];
+                let laneY = 50 + idx * laneHeight;
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(40, laneY + laneHeight);
+                ctx.lineTo(canvasWidth - 40, laneY + laneHeight);
+                ctx.stroke();
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`${pRes.group} (${pRes.name})`, 60, laneY + 22);
+
+                let currentWins = pRes.wins;
+                let isWinner = (key == winnerId);
+                
+                let displayWins = currentWins;
+                if (isWinner) {
+                    let progElapsed = elapsedTime - shootoutDuration;
+                    let t = Math.min(progElapsed / progressDuration, 1.0);
+                    displayWins = (currentWins - 1) + t;
+                }
+
+                let startX = 220;
+                let endX = canvasWidth - 120;
+                let playerX = startX + (displayWins / 5) * (endX - startX);
+                let playerY = laneY + laneHeight/2 + 10;
+
+                // Draw player holding ball next to feet
+                ctx.fillStyle = isWinner ? '#facc15' : '#94a3b8';
+                ctx.strokeStyle = isWinner ? '#b45309' : '#475569';
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.arc(playerX, playerY - 12, 8, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = isWinner ? '#eab308' : '#64748b';
+                ctx.fillRect(playerX - 6, playerY - 4, 12, 10);
+                
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(playerX - 3, playerY + 6);
+                ctx.lineTo(playerX - 3, playerY + 12);
+                ctx.moveTo(playerX + 3, playerY + 6);
+                ctx.lineTo(playerX + 3, playerY + 12);
+                ctx.stroke();
+
+                // Football next to legs
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(playerX + 10, playerY + 10, 6, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+
+        function animate() {
+            let elapsed = Date.now() - startTime;
+            let progress = elapsed / animDuration;
+
+            if (progress >= 1 || skipAnimation) {
+                cancelAnimationFrame(animationFrameId);
+                animationOverlay.style.display = 'none';
+                skipAnimBtn.style.display = 'none';
+                
+                // Redraw always-on leaderboard with final round scores
+                drawLivePitchLeaderboard(results);
+                
+                // Show the start next level button on teacher controls panel
+                nextRoundBtn.style.display = 'block';
+                return;
+            }
+
+            if (elapsed < shootoutDuration) {
+                // PHASE 1: CLOSE UP PENALTY SHOOTOUT (SEQUENTIAL KICKS)
+                let turnIdx = Math.floor(elapsed / turnDuration);
+                if (turnIdx >= numPlayers) turnIdx = numPlayers - 1;
+                
+                let activeKey = playerKeys[turnIdx];
+                let pRes = results[activeKey] || { group: 'Guest', name: 'Player' };
+                let isWinner = (activeKey == winnerId);
+                let turnElapsed = elapsed - (turnIdx * turnDuration);
+                let turnProg = turnElapsed / turnDuration; // 0 to 1
+                
+                // Draw penalty card backing
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+                ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+
+                // Draw Goal Post in the center
+                let goalX = canvasWidth / 2;
+                let goalY = 120;
+                let goalW = 340;
+                let goalH = 170;
+
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(goalX - goalW/2, goalY, goalW, goalH);
+                
+                // Goal Net lines
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1.5;
+                let netShake = 0;
+                if (isWinner && turnProg > 0.45 && turnProg < 0.8) {
+                    netShake = Math.sin(Date.now() / 20) * 8; // shaking goal net!
+                }
+                for (let x = goalX - goalW/2 + 20; x < goalX + goalW/2; x += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, goalY);
+                    ctx.lineTo(x + netShake, goalY + goalH);
+                    ctx.stroke();
+                }
+
+                // Goalkeeper avatar
+                let goalieX = goalX;
+                let goalieY = goalY + goalH - 25;
+                if (turnProg > 0.35) {
+                    if (isWinner) {
+                        goalieX = goalX - 100; // Dives left
+                    } else {
+                        goalieX = goalX + 60; // Dives right and saves/blocks
+                    }
+                }
+                ctx.fillStyle = '#0ea5e9';
+                ctx.beginPath();
+                ctx.arc(goalieX, goalieY, 18, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("GK", goalieX, goalieY + 3);
+
+                // Kicker avatar
+                let kickerX = goalX - 120 + turnProg * 80;
+                if (turnProg > 0.35) kickerX = goalX - 40; // Stops after kick
+                let kickerY = goalY + goalH + 60;
+
+                ctx.fillStyle = isWinner ? '#22c55e' : '#94a3b8';
+                ctx.beginPath();
+                ctx.arc(kickerX, kickerY, 20, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Group team name above player head
+                ctx.fillStyle = '#facc15';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(pRes.group, kickerX, kickerY - 28);
+                ctx.fillStyle = 'white';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(pRes.name, kickerX, kickerY + 3);
+
+                // Football ball
+                let ballX = goalX;
+                let ballY = goalY + goalH + 20;
+                let ballR = 10;
+
+                if (turnProg < 0.35) {
+                    ballX = kickerX + 25;
+                    ballY = kickerY - 5;
+                } else {
+                    let shotProg = (turnProg - 0.35) / 0.65;
+                    if (isWinner) {
+                        ballX = (kickerX + 25) + shotProg * (goalX + 110 - (kickerX + 25));
+                        ballY = (kickerY - 5) + shotProg * (goalY + 30 - (kickerY - 5));
+                        ballR = 10 - shotProg * 3;
+                        if (Math.random() < 0.4) {
+                            particles.push({x: ballX, y: ballY, size: Math.random()*3 + 1.5, age: 0});
+                        }
+                    } else {
+                        let missWide = (turnIdx % 2 === 0);
+                        if (missWide) {
+                            ballX = (kickerX + 25) + shotProg * (goalX + 190 - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalY + 20 - (kickerY - 5));
+                        } else {
+                            ballX = (kickerX + 25) + shotProg * (goalieX - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalieY - (kickerY - 5));
+                        }
+                        ballR = 10 - shotProg * 3;
+                    }
+                }
+
+                // draw particles
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+                    p.age++;
+                });
+                particles = particles.filter(p => p.age < 15);
+
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, ballR, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Trigger sounds exactly at kick time
+                let soundKey = `turn_${turnIdx}`;
+                if (!window.soundTriggered[soundKey] && turnProg >= 0.35) {
+                    window.soundTriggered[soundKey] = true;
+                    sound.playKick();
+                    setTimeout(() => {
+                        if (isWinner) {
+                            sound.playGoal();
+                        } else {
+                            sound.playMiss();
+                        }
+                    }, 400); // 400ms delay matches the shot travel time
+                }
+
+                // Text overlay
+                ctx.font = 'bold 26px sans-serif';
+                if (isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillText("GOOOAL!!! ⚽🔥", goalX, goalY - 30);
+                } else if (!isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#ef4444';
+                    let txt = (turnIdx % 2 === 0) ? "SHOT OUTSIDE! ❌" : "SAVED BY GOALKEEPER! 🧤";
+                    ctx.fillText(txt, goalX, goalY - 30);
+                }
+            } else {
+                // PHASE 2: VISUAL PROGRESS LEADERBOARD
+                drawVisualLeaderboard(elapsed);
+            }
+
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        window.goalSoundPlayed = false;
+        animate();
+    }
+
+    function runGameCompleted(data) {
+        clearInterval(timerInterval);
+        lobbyView.style.display = 'none';
+        playingView.style.display = 'none';
+        animationOverlay.style.display = 'none';
+        document.getElementById('pitchLeaderboardSection').style.display = 'none';
+        completedView.style.display = 'block';
+
+        champGroupName.innerText = data.champion_group;
+        champPlayerName.innerText = data.champion_name;
+        analyticsBtn.href = `/teacher/fifa/session/${sessionId}/analytics/`;
+
+        sound.playGoal(); // Trigger cheer
+
+        // Draw final pitch standings statically
+        const fCanvas = document.getElementById('finalStandingsCanvas');
+        if (fCanvas && data.players_results) {
+            const fCtx = fCanvas.getContext('2d');
+            const w = fCanvas.width;
+            const h = fCanvas.height;
+
+            fCtx.fillStyle = '#15803d';
+            fCtx.fillRect(0, 0, w, h);
+
+            fCtx.strokeStyle = 'white';
+            fCtx.lineWidth = 3;
+            fCtx.strokeRect(30, 30, w - 60, h - 60);
+
+            fCtx.beginPath();
+            fCtx.moveTo(w/2, 30);
+            fCtx.lineTo(w/2, h - 30);
+            fCtx.stroke();
+
+            fCtx.beginPath();
+            fCtx.arc(w/2, h/2, 50, 0, Math.PI*2);
+            fCtx.stroke();
+
+            fCtx.fillStyle = 'rgba(255,255,255,0.1)';
+            fCtx.fillRect(30, h/2 - 40, 20, 80);
+            fCtx.fillRect(w - 50, h/2 - 40, 20, 80);
+
+            let numP = data.players_results.length || 1;
+            let laneH = (h - 80) / numP;
+
+            data.players_results.forEach((p, idx) => {
+                let laneY = 40 + idx * laneH;
+
+                fCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                fCtx.moveTo(30, laneY + laneH);
+                fCtx.lineTo(w - 30, laneY + laneH);
+                fCtx.stroke();
+
+                fCtx.fillStyle = '#cbd5e1';
+                fCtx.font = 'bold 12px sans-serif';
+                fCtx.textAlign = 'left';
+                fCtx.fillText(`${p.group} (${p.name})`, 50, laneY + 20);
+
+                let startX = 200;
+                let endX = w - 100;
+                let playerX = startX + (p.wins / 5) * (endX - startX);
+                let playerY = laneY + laneH/2 + 8;
+
+                // Draw stickman holding ball
+                fCtx.fillStyle = '#94a3b8';
+                fCtx.strokeStyle = '#475569';
+                fCtx.lineWidth = 2;
+                
+                fCtx.beginPath();
+                fCtx.arc(playerX, playerY - 10, 6, 0, Math.PI*2);
+                fCtx.fill();
+                fCtx.stroke();
+
+                fCtx.fillStyle = '#64748b';
+                fCtx.fillRect(playerX - 4, playerY - 4, 8, 8);
+
+                fCtx.strokeStyle = '#475569';
+                fCtx.lineWidth = 2;
+                fCtx.beginPath();
+                fCtx.moveTo(playerX - 2, playerY + 4);
+                fCtx.lineTo(playerX - 2, playerY + 9);
+                fCtx.moveTo(playerX + 2, playerY + 4);
+                fCtx.lineTo(playerX + 2, playerY + 9);
+                fCtx.stroke();
+
+                // Ball
+                fCtx.fillStyle = 'white';
+                fCtx.strokeStyle = 'black';
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                fCtx.arc(playerX + 8, playerY + 8, 5, 0, Math.PI*2);
+                fCtx.fill();
+                fCtx.stroke();
+            });
+        }
+    }
+</script>
+{% endblock %}

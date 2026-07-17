@@ -75,4 +75,15 @@ urlpatterns = [
     path('student/notes/', views.student_view_notes, name='student_view_notes'),
     path('student/feedback/', views.student_send_feedback, name='student_send_feedback'),
     path('student/performance/', views.student_performance_analysis, name='student_performance_analysis'),
+
+    # FIFA Quiz Battle Routes
+    path('teacher/fifa/dashboard/', views.fifa_dashboard, name='fifa_dashboard'),
+    path('teacher/fifa/create/', views.fifa_setup_game, name='fifa_setup_game'),
+    path('teacher/fifa/session/<int:session_id>/lobby/', views.fifa_teacher_lobby, name='fifa_teacher_lobby'),
+    path('teacher/fifa/session/<int:session_id>/present/', views.fifa_present_game, name='fifa_present_game'),
+    path('teacher/fifa/session/<int:session_id>/edit/', views.fifa_edit_game, name='fifa_edit_game'),
+    path('teacher/fifa/session/<int:session_id>/delete/', views.fifa_delete_game, name='fifa_delete_game'),
+    path('teacher/fifa/session/<int:session_id>/analytics/', views.fifa_teacher_analytics, name='fifa_teacher_analytics'),
+    path('student/fifa/join/<int:session_id>/', views.fifa_student_join, name='fifa_student_join'),
+    path('student/fifa/game/<int:session_id>/', views.fifa_student_game, name='fifa_student_game'),
 ]

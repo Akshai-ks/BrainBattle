@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}FIFA Quiz Battle - Edit Game{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem; font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+            <div style="font-size: 2.5rem;">📝</div>
+            <div>
+                <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #0f172a;">Edit Match</h1>
+                <p style="margin: 0.25rem 0 0 0; color: #64748b;">Modify configuration and question details for this FIFA Game Session.</p>
+            </div>
+        </div>
+
+        <form method="POST" id="editForm">
+            {% csrf_token %}
+
+            <!-- Title & Config -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="display: block; font-weight: 700; color: #334155; margin-bottom: 0.5rem; font-size: 0.95rem;">Match Title</label>
+                    <input type="text" name="title" value="{{ session.title }}" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: inherit;" />
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 700; color: #334155; margin-bottom: 0.5rem; font-size: 0.95rem;">Timer (sec)</label>
+                    <input type="number" name="timer" value="{{ session.question_timer }}" min="5" max="60" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: inherit;" />
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 700; color: #334155; margin-bottom: 0.5rem; font-size: 0.95rem;">Total Questions</label>
+                    <input type="number" name="total_questions" id="totalQuestions" value="{{ session.total_questions }}" min="1" max="25" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: inherit;" />
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 700; color: #334155; margin-bottom: 0.5rem; font-size: 0.95rem;">Q's Per Round</label>
+                    <input type="number" name="questions_per_round" value="{{ session.questions_per_round }}" min="1" max="25" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: inherit;" />
+                </div>
+            </div>
+
+            <!-- Manual Section -->
+            <div id="manualSection" style="margin-bottom: 2rem;">
+                <h3 style="margin-top: 0; font-size: 1.2rem; color: #1e293b; font-weight: 700; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Questions List</h3>
+                <div id="manualQuestionsContainer">
+                    <!-- Prefilled by Django -->
+                    {% for q in questions_data %}
+                    <div id="q_block_{{ forloop.index0 }}" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="font-weight: 700; color: #1e293b; margin-bottom: 1rem; font-size: 1.05rem; display: flex; justify-content: space-between;">
+                            <span>Question {{ forloop.index }}</span>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Question Text</label>
+                            <textarea name="question_text_{{ forloop.index0 }}" required rows="2" style="width:100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.9rem; resize: vertical;">{{ q.text }}</textarea>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option A</label>
+                                <input type="text" name="option_a_{{ forloop.index0 }}" value="{{ q.option_a }}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option B</label>
+                                <input type="text" name="option_b_{{ forloop.index0 }}" value="{{ q.option_b }}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option C</label>
+                                <input type="text" name="option_c_{{ forloop.index0 }}" value="{{ q.option_c }}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option D</label>
+                                <input type="text" name="option_d_{{ forloop.index0 }}" value="{{ q.option_d }}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Correct Option</label>
+                            <select name="correct_answer_{{ forloop.index0 }}" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;">
+                                <option value="A" {% if q.correct_answer == 'A' %}selected{% endif %}>Option A</option>
+                                <option value="B" {% if q.correct_answer == 'B' %}selected{% endif %}>Option B</option>
+                                <option value="C" {% if q.correct_answer == 'C' %}selected{% endif %}>Option C</option>
+                                <option value="D" {% if q.correct_answer == 'D' %}selected{% endif %}>Option D</option>
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1.5px solid #f1f5f9; padding-top: 1.5rem;">
+                <a href="{% url 'fifa_dashboard' %}" style="padding: 0.75rem 1.5rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; text-decoration: none; color: #475569; font-size: 0.95rem; text-align: center;">Cancel</a>
+                <button type="submit" style="background: #10b981; color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: background 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const totalQuestionsInput = document.getElementById('totalQuestions');
+    const container = document.getElementById('manualQuestionsContainer');
+
+    function renderQuestionFields() {
+        const count = parseInt(totalQuestionsInput.value) || 5;
+        const currentCount = container.children.length;
+
+        if (count > currentCount) {
+            // Append new questions
+            for (let i = currentCount; i < count; i++) {
+                const qDiv = document.createElement('div');
+                qDiv.id = `q_block_${i}`;
+                qDiv.style.background = '#f8fafc';
+                qDiv.style.border = '1px solid #e2e8f0';
+                qDiv.style.borderRadius = '10px';
+                qDiv.style.padding = '1.5rem';
+                qDiv.style.marginBottom = '1.5rem';
+                qDiv.innerHTML = `
+                    <div style="font-weight: 700; color: #1e293b; margin-bottom: 1rem; font-size: 1.05rem; display: flex; justify-content: space-between;">
+                        <span>Question ${i + 1}</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Question Text</label>
+                        <textarea name="question_text_${i}" required rows="2" style="width:100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.9rem; resize: vertical;"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option A</label>
+                            <input type="text" name="option_a_${i}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option B</label>
+                            <input type="text" name="option_b_${i}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option C</label>
+                            <input type="text" name="option_c_${i}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Option D</label>
+                            <input type="text" name="option_d_${i}" required style="width:100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: 600; color: #475569; font-size: 0.85rem; margin-bottom: 0.25rem;">Correct Option</label>
+                        <select name="correct_answer_${i}" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 0.85rem;">
+                            <option value="A">Option A</option>
+                            <option value="B">Option B</option>
+                            <option value="C">Option C</option>
+                            <option value="D">Option D</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            }
+        } else if (count < currentCount) {
+            // Trim questions
+            for (let i = currentCount - 1; i >= count; i--) {
+                const element = document.getElementById(`q_block_${i}`);
+                if (element) container.removeChild(element);
+            }
+        }
+    }
+
+    totalQuestionsInput.addEventListener('change', renderQuestionFields);
+    totalQuestionsInput.addEventListener('keyup', renderQuestionFields);
+</script>
+{% endblock %}

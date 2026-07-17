@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}FIFA Quiz Battle - Join Match{% endblock %}
+
+{% block content %}
+<div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; font-family: 'Outfit', 'Segoe UI', sans-serif; background: radial-gradient(circle, #1e3a1e 0%, #0c1a0c 100%); margin: -2rem; padding: 2rem;">
+    <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2.5rem; max-width: 450px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; color: white;">
+        
+        <!-- Football Logo Shield -->
+        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); margin: 0 auto 1.5rem auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 3px solid #facc15; box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4); animation: pulse 2s infinite;">⚽</div>
+        
+        <h1 style="margin: 0; font-size: 2rem; font-weight: 800; color: #facc15; letter-spacing: -0.5px;">FIFA QUIZ BATTLE</h1>
+        <p style="margin: 0.5rem 0 2rem 0; opacity: 0.8; font-size: 0.95rem;">You are logged in as <strong>{{ student.name }}</strong> ({{ student.register_number }})</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 2rem; text-align: left;">
+                <label style="display: block; font-weight: 700; color: #a7f3d0; margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Enter Group Name</label>
+                <input type="text" name="group_name" placeholder="e.g. Real Madrid, Strikers..." value="{% if player %}{{ player.group_name }}{% endif %}" required style="width: 100%; padding: 0.9rem 1.2rem; background: rgba(0, 0, 0, 0.2); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 10px; font-family: inherit; font-size: 1.1rem; color: white; transition: all 0.3s; text-align: center;" onfocus="this.style.borderColor='#facc15'; this.style.boxShadow='0 0 10px rgba(250, 204, 21, 0.2)';" onblur="this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.boxShadow='none';" />
+            </div>
+
+            <button type="submit" style="width: 100%; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #1e293b; border: none; padding: 1rem; border-radius: 12px; font-weight: 800; font-size: 1.1rem; cursor: pointer; box-shadow: 0 6px 20px rgba(234, 179, 8, 0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(234, 179, 8, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(234, 179, 8, 0.3)'">
+                {% if player %}Update & Join{% else %}Register & Join{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+{% endblock %}

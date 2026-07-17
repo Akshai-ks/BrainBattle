@@ -1,14 +1,14 @@
 import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import User
+from django.contrib.auth import login, authenticate, logout, get_user_model
+User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Avg, Max, Count
 
-from .models import Subject, Student, Game, MCQQuestion, FillBlankQuestion, MatchItem, GameAttempt, AnonymousFeedback, PDFNote, StudentMark, TeacherSetting, Announcement
+from .models import Subject, Student, Game, MCQQuestion, FillBlankQuestion, MatchItem, GameAttempt, AnonymousFeedback, PDFNote, StudentMark, TeacherSetting, Announcement, FifaGameSession, FifaPlayer, FifaQuestion, FifaAnswerLog, FifaRound
 from .forms import TeacherRegisterForm, StudentRegisterForm, StudentLoginForm
 
 # Custom decorators/checks for student
@@ -164,11 +164,15 @@ def student_dashboard(request):
     # Query games created by this student
     my_created_games = Game.objects.filter(created_by_student=student).order_by('-created_at')
     
+    # Query active FIFA Quiz Battle sessions
+    fifa_sessions = FifaGameSession.objects.filter(status__in=['waiting', 'playing']).order_by('-created_at')
+    
     context = {
         'student': student,
         'teacher_settings': teacher_settings,
         'announcements': announcements,
         'my_created_games': my_created_games,
+        'fifa_sessions': fifa_sessions,
     }
     return render(request, 'game_core/student_dashboard.html', context)
 
@@ -2110,5 +2114,424 @@ def student_change_password(request):
         return redirect('student_login')
         
     return render(request, 'game_core/student_change_password.html', {'is_mandatory': is_mandatory})
+
+
+# =====================================================================
+# FIFA QUIZ BATTLE VIEWS
+# =====================================================================
+
+@login_required
+def fifa_dashboard(request):
+    sessions = FifaGameSession.objects.filter(host=request.user).order_by('-created_at')
+    return render(request, 'game_core/fifa_dashboard.html', {'sessions': sessions})
+
+@login_required
+def fifa_setup_game(request):
+    if request.method == 'POST':
+        title = request.POST.get('title', 'FIFA Quiz Battle').strip()
+        timer = int(request.POST.get('timer', 10))
+        total_questions = int(request.POST.get('total_questions', 5))
+        questions_per_round = int(request.POST.get('questions_per_round', 5))
+        
+        total_questions = min(max(total_questions, 1), 25)
+        timer = min(max(timer, 5), 60)
+        questions_per_round = min(max(questions_per_round, 1), total_questions)
+        
+        session = FifaGameSession.objects.create(
+            host=request.user,
+            title=title,
+            question_timer=timer,
+            total_questions=total_questions,
+            questions_per_round=questions_per_round,
+            status='waiting'
+        )
+        
+        input_method = request.POST.get('input_method', 'manual')
+        questions_to_create = []
+        
+        if input_method == 'file':
+            uploaded_file = request.FILES.get('question_file')
+            if uploaded_file:
+                filename = uploaded_file.name.lower()
+                text = ""
+                parsed_list = []
+                
+                try:
+                    if filename.endswith('.xlsx') or filename.endswith('.xls'):
+                        parsed_list = parse_questions_from_excel(uploaded_file)
+                    elif filename.endswith('.pdf'):
+                        text = extract_text_from_pdf(uploaded_file)
+                        parsed_list = parse_questions_from_text(text)
+                    elif filename.endswith('.docx'):
+                        text = extract_text_from_docx(uploaded_file)
+                        parsed_list = parse_questions_from_text(text)
+                    else:
+                        messages.error(request, "Unsupported file format. Please upload PDF, DOCX, or Excel.")
+                        session.delete()
+                        return redirect('fifa_setup_game')
+                except Exception as e:
+                    messages.error(request, f"Error parsing file: {str(e)}")
+                    session.delete()
+                    return redirect('fifa_setup_game')
+                
+                if not parsed_list:
+                    messages.error(request, "No valid questions parsed from the file. Please check the file formatting.")
+                    session.delete()
+                    return redirect('fifa_setup_game')
+                    
+                for idx, q in enumerate(parsed_list[:total_questions]):
+                    questions_to_create.append(
+                        FifaQuestion(
+                            session=session,
+                            question_text=q['question_text'],
+                            option_a=q['option_a'],
+                            option_b=q['option_b'],
+                            option_c=q['option_c'],
+                            option_d=q['option_d'],
+                            correct_answer=q['correct_answer'],
+                            order=idx
+                        )
+                    )
+            else:
+                messages.error(request, "Please select a file to upload.")
+                session.delete()
+                return redirect('fifa_setup_game')
+                
+        else:
+            for idx in range(total_questions):
+                q_text = request.POST.get(f'question_text_{idx}', '').strip()
+                opt_a = request.POST.get(f'option_a_{idx}', '').strip()
+                opt_b = request.POST.get(f'option_b_{idx}', '').strip()
+                opt_c = request.POST.get(f'option_c_{idx}', '').strip()
+                opt_d = request.POST.get(f'option_d_{idx}', '').strip()
+                ans = request.POST.get(f'correct_answer_{idx}', 'A').strip().upper()
+                
+                if q_text and opt_a and opt_b and opt_c and opt_d:
+                    questions_to_create.append(
+                        FifaQuestion(
+                            session=session,
+                            question_text=q_text,
+                            option_a=opt_a,
+                            option_b=opt_b,
+                            option_c=opt_c,
+                            option_d=opt_d,
+                            correct_answer=ans,
+                            order=len(questions_to_create)
+                        )
+                    )
+            
+            if not questions_to_create:
+                messages.error(request, "Please enter at least one complete question.")
+                session.delete()
+                return redirect('fifa_setup_game')
+        
+        FifaQuestion.objects.bulk_create(questions_to_create)
+        
+        if len(questions_to_create) < total_questions:
+            session.total_questions = len(questions_to_create)
+            session.save()
+            
+        messages.success(request, f"FIFA Game Session '{session.title}' created successfully with {session.total_questions} questions!")
+        return redirect('fifa_teacher_lobby', session_id=session.id)
+        
+    return render(request, 'game_core/fifa_setup_game.html')
+
+def parse_questions_from_text(text):
+    import re
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    questions = []
+    current_q = None
+    
+    opt_re = re.compile(r'^([A-D])[\)\.\s]+(.*)', re.IGNORECASE)
+    ans_re = re.compile(r'^(?:Answer|Correct|Correct\s+Answer)[\s:\-=]+([A-D])', re.IGNORECASE)
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        opt_match = opt_re.match(line)
+        ans_match = ans_re.match(line)
+        
+        if opt_match:
+            if current_q:
+                opt_letter = opt_match.group(1).upper()
+                opt_text = opt_match.group(2).strip()
+                if opt_letter == 'A': current_q['option_a'] = opt_text
+                elif opt_letter == 'B': current_q['option_b'] = opt_text
+                elif opt_letter == 'C': current_q['option_c'] = opt_text
+                elif opt_letter == 'D': current_q['option_d'] = opt_text
+        elif ans_match:
+            if current_q:
+                current_q['correct_answer'] = ans_match.group(1).upper()
+                questions.append(current_q)
+                current_q = None
+        else:
+            if current_q is None:
+                current_q = {
+                    'question_text': line,
+                    'option_a': '',
+                    'option_b': '',
+                    'option_c': '',
+                    'option_d': '',
+                    'correct_answer': ''
+                }
+            else:
+                current_q['question_text'] += "\n" + line
+        i += 1
+        
+    return questions
+
+def parse_questions_from_excel(file):
+    import openpyxl
+    wb = openpyxl.load_workbook(file, data_only=True)
+    sheet = wb.active
+    questions = []
+    
+    rows = list(sheet.iter_rows(values_only=True))
+    if not rows:
+        return questions
+        
+    start_row = 0
+    first_row = [str(cell).lower().strip() if cell is not None else "" for cell in rows[0]]
+    if len(first_row) > 0 and ("question" in first_row[0] or "option" in first_row[1] or "correct" in first_row[-1]):
+        start_row = 1
+        
+    for r in range(start_row, len(rows)):
+        row = rows[r]
+        if not row or not any(row):
+            continue
+        
+        q_text = str(row[0]).strip() if len(row) > 0 and row[0] is not None else ""
+        opt_a = str(row[1]).strip() if len(row) > 1 and row[1] is not None else ""
+        opt_b = str(row[2]).strip() if len(row) > 2 and row[2] is not None else ""
+        opt_c = str(row[3]).strip() if len(row) > 3 and row[3] is not None else ""
+        opt_d = str(row[4]).strip() if len(row) > 4 and row[4] is not None else ""
+        ans = str(row[5]).strip().upper() if len(row) > 5 and row[5] is not None else ""
+        
+        if q_text and opt_a and opt_b and opt_c and opt_d and ans in ['A', 'B', 'C', 'D']:
+            questions.append({
+                'question_text': q_text,
+                'option_a': opt_a,
+                'option_b': opt_b,
+                'option_c': opt_c,
+                'option_d': opt_d,
+                'correct_answer': ans
+            })
+            
+    return questions
+
+def extract_text_from_pdf(file_obj):
+    import pdfplumber
+    text = ""
+    with pdfplumber.open(file_obj) as pdf:
+        for page in pdf.pages:
+            t = page.extract_text()
+            if t:
+                text += t + "\n"
+    return text
+
+def extract_text_from_docx(file_obj):
+    import docx
+    doc = docx.Document(file_obj)
+    text = ""
+    for para in doc.paragraphs:
+        text += para.text + "\n"
+    return text
+
+
+@login_required
+def fifa_teacher_lobby(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id, host=request.user)
+    return render(request, 'game_core/fifa_teacher_lobby.html', {'session': session})
+
+@student_login_required
+def fifa_student_join(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id)
+    if session.status != 'waiting':
+        messages.error(request, "This game session has already started or finished.")
+        return redirect('student_dashboard')
+        
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, id=student_id)
+    
+    player = FifaPlayer.objects.filter(session=session, student=student).first()
+    
+    if request.method == 'POST':
+        group_name = request.POST.get('group_name', '').strip()
+        if not group_name:
+            messages.error(request, "Please enter a Group Name.")
+        else:
+            if not player:
+                player = FifaPlayer.objects.create(
+                    session=session,
+                    student=student,
+                    group_name=group_name
+                )
+            else:
+                player.group_name = group_name
+                player.save()
+            return redirect('fifa_student_game', session_id=session.id)
+            
+    context = {
+        'session': session,
+        'student': student,
+        'player': player
+    }
+    return render(request, 'game_core/fifa_student_join.html', context)
+
+@student_login_required
+def fifa_student_game(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id)
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, id=student_id)
+    player = get_object_or_404(FifaPlayer, session=session, student=student)
+    
+    context = {
+        'session': session,
+        'student': student,
+        'player': player
+    }
+    return render(request, 'game_core/fifa_student_game.html', context)
+
+
+@login_required
+def fifa_teacher_analytics(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id, host=request.user)
+    players = session.players.all()
+    
+    analytics = []
+    questions = session.questions.all().order_by('order')
+    
+    question_stats = []
+    for q in questions:
+        logs = FifaAnswerLog.objects.filter(question=q)
+        correct = logs.filter(is_correct=True).count()
+        incorrect = logs.filter(is_correct=False).count()
+        total_answers = logs.count()
+        accuracy = (correct / total_answers * 100) if total_answers > 0 else 0
+        question_stats.append({
+            'question': q,
+            'correct': correct,
+            'incorrect': incorrect,
+            'accuracy': accuracy
+        })
+        
+    weak_questions = [stat for stat in question_stats if stat['accuracy'] < 50]
+    
+    for player in players:
+        logs = FifaAnswerLog.objects.filter(player=player)
+        correct_count = logs.filter(is_correct=True).count()
+        total_answers = logs.count()
+        
+        accuracy = (correct_count / total_answers * 100) if total_answers > 0 else 0
+        avg_time = logs.filter(is_correct=True).aggregate(Avg('time_taken'))['time_taken__avg'] or 0.0
+        
+        analytics.append({
+            'player': player,
+            'accuracy': accuracy,
+            'avg_time': avg_time,
+            'total_correct': correct_count,
+            'total_answers': total_answers
+        })
+        
+    context = {
+        'session': session,
+        'analytics': analytics,
+        'question_stats': question_stats,
+        'weak_questions': weak_questions
+    }
+    return render(request, 'game_core/fifa_teacher_analytics.html', context)
+
+
+@login_required
+def fifa_present_game(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id, host=request.user)
+    return render(request, 'game_core/fifa_present.html', {'session': session})
+
+
+@login_required
+def fifa_delete_game(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id, host=request.user)
+    session.delete()
+    messages.success(request, "FIFA Game Session deleted successfully.")
+    return redirect('fifa_dashboard')
+
+
+@login_required
+def fifa_edit_game(request, session_id):
+    session = get_object_or_404(FifaGameSession, id=session_id, host=request.user)
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        timer = int(request.POST.get('timer', '12'))
+        questions_per_round = int(request.POST.get('questions_per_round', '3'))
+        total_questions = int(request.POST.get('total_questions', '5'))
+        
+        if not title:
+            messages.error(request, "Session Title is required.")
+        else:
+            session.title = title
+            session.question_timer = timer
+            session.questions_per_round = questions_per_round
+            session.total_questions = total_questions
+            session.save()
+            
+            session.questions.all().delete()
+            
+            questions_to_create = []
+            for idx in range(total_questions):
+                q_text = request.POST.get(f'question_text_{idx}', '').strip()
+                opt_a = request.POST.get(f'option_a_{idx}', '').strip()
+                opt_b = request.POST.get(f'option_b_{idx}', '').strip()
+                opt_c = request.POST.get(f'option_c_{idx}', '').strip()
+                opt_d = request.POST.get(f'option_d_{idx}', '').strip()
+                ans = request.POST.get(f'correct_answer_{idx}', 'A').strip().upper()
+                
+                if q_text and opt_a and opt_b and opt_c and opt_d:
+                      questions_to_create.append(
+                          FifaQuestion(
+                              session=session,
+                              question_text=q_text,
+                              option_a=opt_a,
+                              option_b=opt_b,
+                              option_c=opt_c,
+                              option_d=opt_d,
+                              correct_answer=ans,
+                              order=len(questions_to_create)
+                          )
+                      )
+            
+            if questions_to_create:
+                FifaQuestion.objects.bulk_create(questions_to_create)
+                session.total_questions = len(questions_to_create)
+                session.save()
+                messages.success(request, "FIFA Game Session updated successfully!")
+                return redirect('fifa_dashboard')
+            else:
+                messages.error(request, "Please enter at least one complete question.")
+    
+    questions = session.questions.all().order_by('order')
+    questions_data = []
+    for idx in range(max(session.total_questions, len(questions))):
+        if idx < len(questions):
+            q = questions[idx]
+            questions_data.append({
+                'text': q.question_text,
+                'option_a': q.option_a,
+                'option_b': q.option_b,
+                'option_c': q.option_c,
+                'option_d': q.option_d,
+                'correct_answer': q.correct_answer
+            })
+        else:
+            questions_data.append({
+                'text': '', 'option_a': '', 'option_b': '', 'option_c': '', 'option_d': '', 'correct_answer': 'A'
+            })
+
+    context = {
+        'session': session,
+        'questions_data': questions_data,
+        'total_questions_range': range(session.total_questions)
+    }
+    return render(request, 'game_core/fifa_edit_game.html', context)
+
 
 

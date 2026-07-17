@@ -1,0 +1,798 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FIFA Quiz Battle - Presentation Arena{% endblock %}
+
+{% block content %}
+<div style="min-height: 90vh; background: radial-gradient(circle, #14532d 0%, #052e16 100%); margin: -2rem; padding: 2rem; font-family: 'Outfit', 'Segoe UI', sans-serif; color: white; overflow: hidden; position: relative;">
+    
+    <!-- Header banner -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1.5px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 2.2rem;">⚽</span>
+            <div>
+                <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800; color: #facc15; text-transform: uppercase; letter-spacing: 1px;">{{ session.title }}</h1>
+                <p style="margin: 0; font-size: 0.85rem; color: #a7f3d0; font-weight: 600;">Presentation Arena & Classroom Screen</p>
+            </div>
+        </div>
+        <div id="connectionStatus" style="background: #ef4444; color: white; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: none;">
+            ⚠️ Reconnecting...
+        </div>
+    </div>
+
+    <!-- ================== 1) LOBBY SCREEN (WAITING TO START) ================== -->
+    <div id="lobbyView" style="display: block; text-align: center; padding: 2rem 0;">
+        <div style="max-width: 800px; margin: 0 auto; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+            <div style="font-size: 5rem; margin-bottom: 1rem; animation: float 3s ease-in-out infinite;">🏆</div>
+            <h2 style="font-size: 2.5rem; font-weight: 900; color: #facc15; margin: 0;">FIFA QUIZ BATTLE</h2>
+            <p style="font-size: 1.25rem; color: #e2e8f0; margin: 0.5rem 0 2rem 0;">Host: <strong>{{ session.host.username }}</strong></p>
+
+            <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px; margin-bottom: 3rem; border: 1.5px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 1.1rem; text-transform: uppercase; color: #4ade80; font-weight: 800; letter-spacing: 1px; margin-bottom: 0.5rem;">How to Join the Match</div>
+                <div style="font-size: 1.5rem; font-weight: 700;">1. Open the student portal and log in.</div>
+                <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem;">2. Click "Join Live Match" and enter your Group Name!</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-around; font-size: 1.3rem; font-weight: 800; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+                <div>Joined Groups: <span id="lobbyJoinedCount" style="color: #facc15; font-size: 1.8rem;">0</span></div>
+                <div>Ready Players: <span id="lobbyReadyCount" style="color: #4ade80; font-size: 1.8rem;">0</span></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: #cbd5e1; font-weight: 800; font-size: 1.2rem; margin-bottom: 1.5rem; text-align: left;">🛡️ REGISTERED TEAMS</h3>
+            <div id="lobbyPlayersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                <!-- Registered players list cards dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================== 2) ACTIVE PLAYING SCREEN ================== -->
+    <div id="playingView" style="display: none; max-width: 950px; margin: 0 auto;">
+        
+        <!-- Large Q Index & Countdown Timer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <span style="font-weight: 800; color: #facc15; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px;" id="qIndexText">Question 1</span>
+            <div style="display: flex; align-items: center; gap: 0.75rem; background: #fee2e2; color: #ef4444; padding: 0.75rem 2rem; border-radius: 30px; font-weight: 900; font-size: 1.8rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);" id="timerBadge">
+                ⏱️ <span id="timerCountdown">12</span>s
+            </div>
+        </div>
+
+        <!-- Giant Question Card -->
+        <div style="background: white; color: #0f172a; border-radius: 20px; padding: 3rem; box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 2rem;">
+            <h2 id="questionText" style="font-size: 2.2rem; font-weight: 900; margin: 0; line-height: 1.35; color: #0f172a; text-align: center;">
+                Who won the FIFA World Cup in 2022?
+            </h2>
+        </div>
+
+        <!-- MCQ Options (Large Presentation View) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+            <div id="optA" style="background: rgba(255,255,255,0.06); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 1.5rem 2rem; font-size: 1.4rem; font-weight: 700; transition: all 0.2s; line-height: 1.4;">A) Loading...</div>
+            <div id="optB" style="background: rgba(255,255,255,0.06); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 1.5rem 2rem; font-size: 1.4rem; font-weight: 700; transition: all 0.2s; line-height: 1.4;">B) Loading...</div>
+            <div id="optC" style="background: rgba(255,255,255,0.06); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 1.5rem 2rem; font-size: 1.4rem; font-weight: 700; transition: all 0.2s; line-height: 1.4;">C) Loading...</div>
+            <div id="optD" style="background: rgba(255,255,255,0.06); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 1.5rem 2rem; font-size: 1.4rem; font-weight: 700; transition: all 0.2s; line-height: 1.4;">D) Loading...</div>
+        </div>
+
+        <!-- Answers stats summary section (Visible after reveal) -->
+        <div id="statsSection" style="display: none; background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; margin-top: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div style="display: flex; gap: 3rem; align-items: center;">
+                <div style="text-align: center; background: rgba(34, 197, 94, 0.15); border: 2px solid #22c55e; border-radius: 16px; padding: 1.5rem 2.5rem; width: fit-content;">
+                    <div style="font-size: 0.9rem; color: #4ade80; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Correct Answer</div>
+                    <div id="correctAnswerBadge" style="font-size: 3rem; font-weight: 900; color: #22c55e; margin-top: 0.25rem;">A</div>
+                </div>
+                <div style="flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;" id="optionsCountGrid">
+                    <!-- Option percentages injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================== 3) ANIMATION CANVAS SCREEN ================== -->
+    <div id="animationView" style="display: none; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.4); margin-bottom: 2rem; position: relative; max-width: 1200px; margin-left: auto; margin-right: auto;">
+        <div style="position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.6); color: white; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 800; font-size: 1.1rem; z-index: 10;" id="animationTitleText">
+            Round Evaluation
+        </div>
+        <canvas id="animCanvas" width="1160" height="500" style="display: block; width: 100%; height: auto; background: #15803d;"></canvas>
+    </div>
+
+    <!-- ================== 4) COMPLETED GAME OVER SCREEN ================== -->
+    <div id="completedView" style="display: none; max-width: 1000px; margin: 0 auto; text-align: center;">
+        <div style="background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 4rem 2rem; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+            <div style="font-size: 6rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite;">🏆</div>
+            <h1 style="font-size: 3rem; font-weight: 900; color: #facc15; margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+                MATCH COMPLETED
+            </h1>
+            
+            <div style="margin: 3rem auto; max-width: 600px; background: rgba(255,255,255,0.05); padding: 2.5rem; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+                <div style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1.5px; color: #a7f3d0; font-weight: 700; margin-bottom: 0.5rem;">Winning Group</div>
+                <div id="champGroupName" style="font-size: 2.5rem; font-weight: 900; color: white; margin: 0.5rem 0;">Real Madrid</div>
+                <div style="font-size: 1.25rem; opacity: 0.9;">Player: <strong id="champPlayerName">Lionel Messi</strong></div>
+            </div>
+
+            <!-- Final Standings Visual Pitch -->
+            <div style="margin: 3rem auto; max-width: 800px; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.05);">
+                <h3 style="color: #facc15; font-weight: 800; font-size: 1.3rem; margin-top: 0; margin-bottom: 1.25rem;">🏆 FINAL FIELD STANDINGS</h3>
+                <canvas id="finalStandingsCanvas" width="800" height="350" style="display: block; width: 100%; height: auto; background: #15803d; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.2);"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Sound synthesis support -->
+<script>
+    class SoundManager {
+        constructor() {
+            this.ctx = null;
+        }
+        init() {
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        playTick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.06);
+        }
+        playGoal() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            let osc1 = this.ctx.createOscillator();
+            let gain1 = this.ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(this.ctx.destination);
+            osc1.frequency.setValueAtTime(2000, this.ctx.currentTime);
+            osc1.frequency.linearRampToValueAtTime(2200, this.ctx.currentTime + 0.15);
+            osc1.frequency.linearRampToValueAtTime(2000, this.ctx.currentTime + 0.3);
+            gain1.gain.setValueAtTime(0.1, this.ctx.currentTime);
+            gain1.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.2);
+            gain1.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+            osc1.start();
+            osc1.stop(this.ctx.currentTime + 0.4);
+
+            // Crowd cheer (filtered white noise)
+            setTimeout(() => {
+                let bufferSize = 2 * this.ctx.sampleRate;
+                let noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                let output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+                let whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+
+                let filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1000;
+                filter.Q.value = 1.5;
+
+                let gainNode = this.ctx.createGain();
+                whiteNoise.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+
+                gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.3);
+                gainNode.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 1.0);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.0);
+
+                whiteNoise.start();
+                whiteNoise.stop(this.ctx.currentTime + 2.0);
+            }, 300);
+        }
+        playMiss() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.7);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.75);
+        }
+        playKick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.15);
+        }
+    }
+
+    const sound = new SoundManager();
+
+    // WS Connection
+    const sessionId = "{{ session.id }}";
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socketUrl = wsScheme + '://' + window.location.host + '/ws/fifa/' + sessionId + '/';
+    let socket = new WebSocket(socketUrl);
+
+    // DOM Elements
+    const lobbyView = document.getElementById('lobbyView');
+    const playingView = document.getElementById('playingView');
+    const animationView = document.getElementById('animationView');
+    const completedView = document.getElementById('completedView');
+    const connectionStatus = document.getElementById('connectionStatus');
+
+    const lobbyJoinedCount = document.getElementById('lobbyJoinedCount');
+    const lobbyReadyCount = document.getElementById('lobbyReadyCount');
+    const lobbyPlayersGrid = document.getElementById('lobbyPlayersGrid');
+
+    const questionText = document.getElementById('questionText');
+    const qIndexText = document.getElementById('qIndexText');
+    const timerCountdown = document.getElementById('timerCountdown');
+    const statsSection = document.getElementById('statsSection');
+    const correctAnswerBadge = document.getElementById('correctAnswerBadge');
+    const optionsCountGrid = document.getElementById('optionsCountGrid');
+
+    const optA = document.getElementById('optA');
+    const optB = document.getElementById('optB');
+    const optC = document.getElementById('optC');
+    const optD = document.getElementById('optD');
+
+    const animCanvas = document.getElementById('animCanvas');
+    const ctx = animCanvas.getContext('2d');
+    const animationTitleText = document.getElementById('animationTitleText');
+
+    const champGroupName = document.getElementById('champGroupName');
+    const champPlayerName = document.getElementById('champPlayerName');
+
+    // States
+    let joinedPlayers = [];
+    let timerInterval = null;
+    let timerSeconds = 12;
+    let animationFrameId = null;
+
+    socket.onopen = function() {
+        connectionStatus.style.display = 'none';
+    };
+
+    socket.onclose = function() {
+        connectionStatus.style.display = 'block';
+        setTimeout(() => {
+            socket = new WebSocket(socketUrl);
+        }, 3000);
+    };
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("Presentation Panel Received:", data);
+
+        if (data.type === 'lobby_state' || data.type === 'broadcast_lobby_state') {
+            updateLobbyState(data);
+        } else if (data.type === 'broadcast_question') {
+            loadQuestion(data);
+        } else if (data.type === 'broadcast_reveal') {
+            revealQuestionResults(data);
+        } else if (data.type === 'broadcast_round_completed') {
+            runRoundAnimation(data);
+        } else if (data.type === 'broadcast_game_completed') {
+            runGameCompleted(data);
+        }
+    };
+
+    function updateLobbyState(data) {
+        lobbyView.style.display = 'block';
+        playingView.style.display = 'none';
+        animationView.style.display = 'none';
+        completedView.style.display = 'none';
+
+        lobbyJoinedCount.innerText = data.total_count;
+        lobbyReadyCount.innerText = data.ready_count;
+        joinedPlayers = data.players;
+
+        lobbyPlayersGrid.innerHTML = '';
+        joinedPlayers.forEach(p => {
+            const playerCard = document.createElement('div');
+            playerCard.style.background = 'rgba(255, 255, 255, 0.08)';
+            playerCard.style.border = p.is_ready ? '2.5px solid #22c55e' : '1.5px solid rgba(255, 255, 255, 0.1)';
+            playerCard.style.borderRadius = '12px';
+            playerCard.style.padding = '1.25rem';
+            playerCard.style.textAlign = 'center';
+            playerCard.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+            
+            playerCard.innerHTML = `
+                <div style="font-size: 2rem; margin-bottom: 0.25rem;">🏃‍♂️</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: white;">${p.name}</div>
+                <div style="font-size: 0.9rem; color: #a7f3d0; font-weight: 600; margin-top: 0.25rem;">Group: ${p.group_name}</div>
+                <div style="margin-top: 0.75rem; font-size: 0.8rem; font-weight: 800; color: ${p.is_ready ? '#4ade80' : '#cbd5e1'}; text-transform: uppercase;">
+                    ${p.is_ready ? '✅ READY' : '⏳ WAITING'}
+                </div>
+            `;
+            lobbyPlayersGrid.appendChild(playerCard);
+        });
+    }
+
+    function loadQuestion(data) {
+        lobbyView.style.display = 'none';
+        playingView.style.display = 'block';
+        animationView.style.display = 'none';
+        completedView.style.display = 'none';
+
+        qIndexText.innerText = `Question ${data.question_index + 1}`;
+        questionText.innerText = data.question_text;
+
+        optA.innerText = `A) ${data.option_a}`;
+        optB.innerText = `B) ${data.option_b}`;
+        optC.innerText = `C) ${data.option_c}`;
+        optD.innerText = `D) ${data.option_d}`;
+
+        optA.style.background = 'rgba(255,255,255,0.06)';
+        optA.style.borderColor = 'rgba(255,255,255,0.15)';
+        optA.style.color = 'white';
+        optB.style.background = 'rgba(255,255,255,0.06)';
+        optB.style.borderColor = 'rgba(255,255,255,0.15)';
+        optB.style.color = 'white';
+        optC.style.background = 'rgba(255,255,255,0.06)';
+        optC.style.borderColor = 'rgba(255,255,255,0.15)';
+        optC.style.color = 'white';
+        optD.style.background = 'rgba(255,255,255,0.06)';
+        optD.style.borderColor = 'rgba(255,255,255,0.15)';
+        optD.style.color = 'white';
+
+        statsSection.style.display = 'none';
+
+        clearInterval(timerInterval);
+        timerSeconds = data.timer_seconds;
+        timerCountdown.innerText = timerSeconds;
+
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            timerCountdown.innerText = timerSeconds;
+            if (timerSeconds <= 3 && timerSeconds > 0) {
+                sound.playTick();
+            }
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+
+    function revealQuestionResults(data) {
+        clearInterval(timerInterval);
+        statsSection.style.display = 'block';
+
+        const correct = data.correct_answer;
+        correctAnswerBadge.innerText = correct;
+
+        // Highlight options green/red
+        const opts = {'A': optA, 'B': optB, 'C': optC, 'D': optD};
+        Object.keys(opts).forEach(k => {
+            if (k === correct) {
+                opts[k].style.background = '#22c55e';
+                opts[k].style.borderColor = '#16a34a';
+                opts[k].style.color = 'white';
+            } else {
+                opts[k].style.background = 'rgba(239, 68, 68, 0.15)';
+                opts[k].style.borderColor = '#ef4444';
+                opts[k].style.color = '#fecaca';
+            }
+        });
+
+        // Answer stats percentages
+        optionsCountGrid.innerHTML = '';
+        const submissionStats = data.stats || {};
+        const letters = ['A', 'B', 'C', 'D'];
+        letters.forEach(letter => {
+            const count = submissionStats[letter] || 0;
+            const pct = data.total_submissions > 0 ? Math.round(count / data.total_submissions * 100) : 0;
+            
+            const barContainer = document.createElement('div');
+            barContainer.style.textAlign = 'center';
+            barContainer.innerHTML = `
+                <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 0.4rem;">Option ${letter}</div>
+                <div style="background: rgba(255,255,255,0.1); height: 120px; border-radius: 8px; position: relative; width: 45px; margin: 0 auto; overflow: hidden; border: 1px solid rgba(255,255,255,0.15);">
+                    <div style="background: ${letter === correct ? '#22c55e' : '#64748b'}; width: 100%; height: ${pct}%; position: absolute; bottom: 0; left: 0; transition: height 0.5s ease-out;"></div>
+                </div>
+                <div style="font-weight: 700; font-size: 1rem; margin-top: 0.5rem; color: ${letter === correct ? '#4ade80' : '#cbd5e1'};">${pct}% (${count})</div>
+            `;
+            optionsCountGrid.appendChild(barContainer);
+        });
+    }
+
+    function runRoundAnimation(data) {
+        lobbyView.style.display = 'none';
+        playingView.style.display = 'none';
+        completedView.style.display = 'none';
+        animationView.style.display = 'block';
+
+        let roundNum = data.round_number;
+        let winnerId = data.winner_id;
+        let results = data.players_results;
+        animationTitleText.innerText = `Round ${roundNum} Evaluation`;
+
+        let canvasWidth = animCanvas.width;
+        let canvasHeight = animCanvas.height;
+
+        let startTime = Date.now();
+        let shootoutDuration = 15000; // 15 seconds for shootout
+        let progressDuration = 5000; // 5 seconds for visual field reveal
+        let animDuration = shootoutDuration + progressDuration; // 20 seconds total
+
+        let playerKeys = Object.keys(results);
+        let numPlayers = playerKeys.length || 1;
+        let turnDuration = shootoutDuration / numPlayers;
+        let particles = [];
+        window.soundTriggered = {};
+
+        function drawVisualLeaderboard(elapsedTime) {
+            ctx.fillStyle = '#15803d'; 
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+            
+            ctx.beginPath();
+            ctx.moveTo(canvasWidth/2, 40);
+            ctx.lineTo(canvasWidth/2, canvasHeight - 40);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(canvasWidth/2, canvasHeight/2, 60, 0, Math.PI*2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(40, canvasHeight/2 - 50, 20, 100);
+            ctx.fillRect(canvasWidth - 60, canvasHeight/2 - 50, 20, 100);
+
+            let laneHeight = (canvasHeight - 100) / Math.max(numPlayers, 1);
+
+            playerKeys.forEach((key, idx) => {
+                let pRes = results[key];
+                let laneY = 50 + idx * laneHeight;
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(40, laneY + laneHeight);
+                ctx.lineTo(canvasWidth - 40, laneY + laneHeight);
+                ctx.stroke();
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`${pRes.group} (${pRes.name})`, 60, laneY + 22);
+
+                let currentWins = pRes.wins;
+                let isWinner = (key == winnerId);
+                
+                let displayWins = currentWins;
+                if (isWinner) {
+                    let progElapsed = elapsedTime - shootoutDuration;
+                    let t = Math.min(progElapsed / progressDuration, 1.0);
+                    displayWins = (currentWins - 1) + t;
+                }
+
+                let startX = 220;
+                let endX = canvasWidth - 120;
+                let playerX = startX + (displayWins / 5) * (endX - startX);
+                let playerY = laneY + laneHeight/2 + 10;
+
+                // Draw player holding ball next to feet
+                ctx.fillStyle = isWinner ? '#facc15' : '#94a3b8';
+                ctx.strokeStyle = isWinner ? '#b45309' : '#475569';
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.arc(playerX, playerY - 12, 8, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = isWinner ? '#eab308' : '#64748b';
+                ctx.fillRect(playerX - 6, playerY - 4, 12, 10);
+                
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(playerX - 3, playerY + 6);
+                ctx.lineTo(playerX - 3, playerY + 12);
+                ctx.moveTo(playerX + 3, playerY + 6);
+                ctx.lineTo(playerX + 3, playerY + 12);
+                ctx.stroke();
+
+                // Football next to legs
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(playerX + 10, playerY + 10, 6, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+
+        function animate() {
+            let elapsed = Date.now() - startTime;
+            let progress = elapsed / animDuration;
+
+            if (progress >= 1) {
+                cancelAnimationFrame(animationFrameId);
+                drawVisualLeaderboard(animDuration);
+                // Hold static view showing visual leaderboard until teacher triggers next level
+                return;
+            }
+
+            if (elapsed < shootoutDuration) {
+                // PHASE 1: CLOSE UP PENALTY SHOOTOUT (SEQUENTIAL KICKS)
+                let turnIdx = Math.floor(elapsed / turnDuration);
+                if (turnIdx >= numPlayers) turnIdx = numPlayers - 1;
+                
+                let activeKey = playerKeys[turnIdx];
+                let pRes = results[activeKey] || { group: 'Guest', name: 'Player' };
+                let isWinner = (activeKey == winnerId);
+                let turnElapsed = elapsed - (turnIdx * turnDuration);
+                let turnProg = turnElapsed / turnDuration;
+                
+                // Draw penalty backing card
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+                ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+
+                let goalX = canvasWidth / 2;
+                let goalY = 120;
+                let goalW = 340;
+                let goalH = 170;
+
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(goalX - goalW/2, goalY, goalW, goalH);
+                
+                // Net
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1.5;
+                let netShake = 0;
+                if (isWinner && turnProg > 0.45 && turnProg < 0.8) {
+                    netShake = Math.sin(Date.now() / 20) * 8;
+                }
+                for (let x = goalX - goalW/2 + 20; x < goalX + goalW/2; x += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, goalY);
+                    ctx.lineTo(x + netShake, goalY + goalH);
+                    ctx.stroke();
+                }
+
+                // GK
+                let goalieX = goalX;
+                let goalieY = goalY + goalH - 25;
+                if (turnProg > 0.35) {
+                    if (isWinner) {
+                        goalieX = goalX - 100;
+                    } else {
+                        goalieX = goalX + 60;
+                    }
+                }
+                ctx.fillStyle = '#0ea5e9';
+                ctx.beginPath();
+                ctx.arc(goalieX, goalieY, 18, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("GK", goalieX, goalieY + 3);
+
+                // Kicker
+                let kickerX = goalX - 120 + turnProg * 80;
+                if (turnProg > 0.35) kickerX = goalX - 40;
+                let kickerY = goalY + goalH + 60;
+
+                ctx.fillStyle = isWinner ? '#22c55e' : '#94a3b8';
+                ctx.beginPath();
+                ctx.arc(kickerX, kickerY, 20, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#facc15';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(pRes.group, kickerX, kickerY - 28);
+                ctx.fillStyle = 'white';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(pRes.name, kickerX, kickerY + 3);
+
+                // Ball
+                let ballX = goalX;
+                let ballY = goalY + goalH + 20;
+                let ballR = 10;
+
+                if (turnProg < 0.35) {
+                    ballX = kickerX + 25;
+                    ballY = kickerY - 5;
+                } else {
+                    let shotProg = (turnProg - 0.35) / 0.65;
+                    if (isWinner) {
+                        ballX = (kickerX + 25) + shotProg * (goalX + 110 - (kickerX + 25));
+                        ballY = (kickerY - 5) + shotProg * (goalY + 30 - (kickerY - 5));
+                        ballR = 10 - shotProg * 3;
+                        if (Math.random() < 0.4) {
+                            particles.push({x: ballX, y: ballY, size: Math.random()*3 + 1.5, age: 0});
+                        }
+                    } else {
+                        let missWide = (turnIdx % 2 === 0);
+                        if (missWide) {
+                            ballX = (kickerX + 25) + shotProg * (goalX + 190 - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalY + 20 - (kickerY - 5));
+                        } else {
+                            ballX = (kickerX + 25) + shotProg * (goalieX - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalieY - (kickerY - 5));
+                        }
+                        ballR = 10 - shotProg * 3;
+                    }
+                }
+
+                // draw particles
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+                    p.age++;
+                });
+                particles = particles.filter(p => p.age < 15);
+
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, ballR, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+
+                let soundKey = `turn_${turnIdx}`;
+                if (!window.soundTriggered[soundKey] && turnProg >= 0.35) {
+                    window.soundTriggered[soundKey] = true;
+                    sound.playKick();
+                    setTimeout(() => {
+                        if (isWinner) {
+                            sound.playGoal();
+                        } else {
+                            sound.playMiss();
+                        }
+                    }, 400);
+                }
+
+                ctx.font = 'bold 26px sans-serif';
+                if (isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillText("GOOOAL!!! ⚽🔥", goalX, goalY - 30);
+                } else if (!isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#ef4444';
+                    let txt = (turnIdx % 2 === 0) ? "SHOT OUTSIDE! ❌" : "SAVED BY GOALKEEPER! 🧤";
+                    ctx.fillText(txt, goalX, goalY - 30);
+                }
+            } else {
+                drawVisualLeaderboard(elapsed);
+            }
+
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        window.goalSoundPlayed = false;
+        animate();
+    }
+
+    function runGameCompleted(data) {
+        lobbyView.style.display = 'none';
+        playingView.style.display = 'none';
+        animationView.style.display = 'none';
+        completedView.style.display = 'block';
+
+        champGroupName.innerText = data.champion_group;
+        champPlayerName.innerText = data.champion_name;
+
+        sound.playGoal();
+
+        // Draw final pitch standings statically
+        const fCanvas = document.getElementById('finalStandingsCanvas');
+        if (fCanvas && data.players_results) {
+            const fCtx = fCanvas.getContext('2d');
+            const w = fCanvas.width;
+            const h = fCanvas.height;
+
+            fCtx.fillStyle = '#15803d';
+            fCtx.fillRect(0, 0, w, h);
+
+            fCtx.strokeStyle = 'white';
+            fCtx.lineWidth = 3;
+            fCtx.strokeRect(30, 30, w - 60, h - 60);
+
+            fCtx.beginPath();
+            fCtx.moveTo(w/2, 30);
+            fCtx.lineTo(w/2, h - 30);
+            fCtx.stroke();
+
+            fCtx.beginPath();
+            fCtx.arc(w/2, h/2, 50, 0, Math.PI*2);
+            fCtx.stroke();
+
+            fCtx.fillStyle = 'rgba(255,255,255,0.1)';
+            fCtx.fillRect(30, h/2 - 40, 20, 80);
+            fCtx.fillRect(w - 50, h/2 - 40, 20, 80);
+
+            let numP = data.players_results.length || 1;
+            let laneH = (h - 80) / numP;
+
+            data.players_results.forEach((p, idx) => {
+                let laneY = 40 + idx * laneH;
+
+                fCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                fCtx.moveTo(30, laneY + laneH);
+                fCtx.lineTo(w - 30, laneY + laneH);
+                fCtx.stroke();
+
+                fCtx.fillStyle = '#cbd5e1';
+                fCtx.font = 'bold 12px sans-serif';
+                fCtx.textAlign = 'left';
+                fCtx.fillText(`${p.group} (${p.name})`, 50, laneY + 20);
+
+                let startX = 200;
+                let endX = w - 100;
+                let playerX = startX + (p.wins / 5) * (endX - startX);
+                let playerY = laneY + laneH/2 + 8;
+
+                fCtx.fillStyle = '#94a3b8';
+                fCtx.strokeStyle = '#475569';
+                fCtx.lineWidth = 2;
+                
+                fCtx.beginPath();
+                fCtx.arc(playerX, playerY - 10, 6, 0, Math.PI*2);
+                fCtx.fill();
+                fCtx.stroke();
+
+                fCtx.fillStyle = '#64748b';
+                fCtx.fillRect(playerX - 4, playerY - 4, 8, 8);
+
+                fCtx.strokeStyle = '#475569';
+                fCtx.lineWidth = 2;
+                fCtx.beginPath();
+                fCtx.moveTo(playerX - 2, playerY + 4);
+                fCtx.lineTo(playerX - 2, playerY + 9);
+                fCtx.moveTo(playerX + 2, playerY + 4);
+                fCtx.lineTo(playerX + 2, playerY + 9);
+                fCtx.stroke();
+
+                fCtx.fillStyle = 'white';
+                fCtx.strokeStyle = 'black';
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                fCtx.arc(playerX + 8, playerY + 8, 5, 0, Math.PI*2);
+                fCtx.fill();
+                fCtx.stroke();
+            });
+        }
+    }
+</script>
+
+<style>
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+</style>
+{% endblock %}

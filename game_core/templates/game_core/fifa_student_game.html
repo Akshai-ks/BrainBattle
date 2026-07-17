@@ -1,0 +1,724 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FIFA Quiz Battle - Match Play{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; background: radial-gradient(circle, #14532d 0%, #052e16 100%); margin: -2rem; padding: 2rem; font-family: 'Outfit', 'Segoe UI', sans-serif; color: white;">
+    
+    <!-- Connection Status -->
+    <div id="connectionStatus" style="background: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-align: center; margin-bottom: 1rem; display: none;">
+        ⚠️ Reconnecting to host...
+    </div>
+
+    <!-- ANTI CHEAT WARNING OVERLAY -->
+    <div id="antiCheatOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center;">
+        <div style="font-size: 5rem; margin-bottom: 1rem;">🛑</div>
+        <h1 style="color: #ef4444; font-size: 2.5rem; font-weight: 900; margin: 0;">TAB SWITCH DETECTED</h1>
+        <p style="font-size: 1.25rem; color: #cbd5e1; max-width: 500px; margin: 1rem 0 2rem 0; line-height: 1.5;">
+            FIFA Quiz Battle anti-cheat rules prohibit leaving the active window. This question has been locked as <strong>INCORRECT</strong>.
+        </p>
+        <button onclick="dismissCheatWarning()" style="background: #ef4444; color: white; border: none; padding: 0.8rem 2.5rem; border-radius: 30px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+            Return to Match
+        </button>
+    </div>
+
+    <!-- MAIN STUDENT VIEW CONTAINER -->
+    <div style="max-width: 650px; margin: 0 auto;">
+
+        <!-- 1) WAITING LOBBY SCREEN -->
+        <div id="lobbyScreen" style="display: block; text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s infinite;">🏃‍♂️</div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #facc15; margin: 0;">LOBBY ROOM</h1>
+            <p style="font-size: 1.1rem; opacity: 0.9; margin: 0.5rem 0 2rem 0;">Group Registered: <strong>{{ player.group_name }}</strong></p>
+
+            <div style="background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; margin-bottom: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div id="readyStatusBadge" style="display: inline-block; padding: 0.5rem 1.5rem; border-radius: 30px; font-weight: 800; font-size: 1.1rem; background: #ea580c; color: white; margin-bottom: 1.5rem;">
+                    ⏳ NOT READY
+                </div>
+                
+                <p style="color: #a7f3d0; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                    Prepare your team! Once ready, check the box below. Students cannot proceed until the host starts the match.
+                </p>
+
+                <label style="display: inline-flex; align-items: center; gap: 0.75rem; cursor: pointer; background: rgba(0,0,0,0.2); padding: 0.75rem 2rem; border-radius: 12px; font-size: 1.25rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.15);" id="readyCheckboxLabel">
+                    <input type="checkbox" id="readyCheckbox" style="transform: scale(1.5); accent-color: #22c55e;" />
+                    I am Ready
+                </label>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="margin: 0; font-size: 0.9rem; color: #a3a3a3;">Please wait, the host will start the game...</p>
+            </div>
+        </div>
+
+        <!-- 2) ACTIVE PLAYING SCREEN -->
+        <div id="playingScreen" style="display: none; padding: 1rem 0;">
+            <!-- Header bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: rgba(255,255,255,0.05); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <span id="playerGroupBadge" style="font-weight: 800; color: #facc15; font-size: 1.05rem;">🛡️ {{ player.group_name }}</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem; background: #fee2e2; color: #ef4444; padding: 0.4rem 0.9rem; border-radius: 20px; font-weight: 800;" id="timerBadge">
+                    ⏱️ <span id="timerCountdown">12</span>s
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div style="background: white; color: #0f172a; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 1.5rem;">
+                <span id="questionNumText" style="font-weight: 700; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Question 1</span>
+                <h2 id="questionText" style="font-size: 1.4rem; font-weight: 800; margin: 0.5rem 0 0 0; line-height: 1.4; color: #0f172a;">
+                    Who is the all-time top scorer of the FIFA World Cup?
+                </h2>
+            </div>
+
+            <!-- Lock Answer Overlay message -->
+            <div id="lockMessage" style="display: none; background: rgba(250, 204, 21, 0.15); border: 1.5px solid #facc15; color: #fef08a; padding: 0.75rem; border-radius: 10px; font-weight: 700; text-align: center; margin-bottom: 1.5rem; animation: pulse 1.5s infinite;">
+                🔒 Answer locked in. Waiting for other players...
+            </div>
+
+            <!-- MCQ Options (Large Mobile Friendly Buttons) -->
+            <div id="optionsGrid" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                <button onclick="selectOption('A')" id="btnOptA" style="width: 100%; min-height: 70px; background: rgba(255,255,255,0.08); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 14px; color: white; padding: 1.25rem; font-size: 1.15rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.2s; font-family: inherit;">
+                    A) Miroslav Klose
+                </button>
+                <button onclick="selectOption('B')" id="btnOptB" style="width: 100%; min-height: 70px; background: rgba(255,255,255,0.08); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 14px; color: white; padding: 1.25rem; font-size: 1.15rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.2s; font-family: inherit;">
+                    B) Ronaldo Nazario
+                </button>
+                <button onclick="selectOption('C')" id="btnOptC" style="width: 100%; min-height: 70px; background: rgba(255,255,255,0.08); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 14px; color: white; padding: 1.25rem; font-size: 1.15rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.2s; font-family: inherit;">
+                    C) Pele
+                </button>
+                <button onclick="selectOption('D')" id="btnOptD" style="width: 100%; min-height: 70px; background: rgba(255,255,255,0.08); border: 2.5px solid rgba(255,255,255,0.15); border-radius: 14px; color: white; padding: 1.25rem; font-size: 1.15rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.2s; font-family: inherit;">
+                    D) Lionel Messi
+                </button>
+            </div>
+        </div>
+
+        <!-- 3) ANIMATION CANVAS SCREEN -->
+        <div id="animationScreen" style="display: none; background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); margin-bottom: 2rem; position: relative;">
+            <div style="position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.6); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 800; z-index: 10;" id="animationTitleText">
+                Round Evaluation
+            </div>
+            <canvas id="animCanvas" width="650" height="400" style="display: block; width: 100%; height: auto; background: #15803d;"></canvas>
+        </div>
+
+        <!-- 4) COMPLETED GAME OVER SCREEN -->
+        <div id="completedScreen" style="display: none; text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite;">🏆</div>
+            <h1 style="font-size: 2.5rem; font-weight: 900; color: #facc15; margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+                MATCH COMPLETED
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.8; margin: 0.5rem 0 2rem 0;">The referee has blown the final whistle!</p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 2.5rem 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 2rem;">
+                <div style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; color: #4ade80; font-weight: 700;">Champion Group</div>
+                <div id="champGroupName" style="font-size: 2rem; font-weight: 800; color: white; margin: 0.5rem 0;">Real Madrid</div>
+                <div style="font-size: 1rem; opacity: 0.9;">Member: <strong id="champPlayerName">Lionel Messi</strong></div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 1.25rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="margin: 0; font-size: 0.95rem; color: #cbd5e1; line-height: 1.5;">Thanks for playing! The host will share the final results and session performance reports soon.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+</style>
+
+<script>
+    // Sound Synth Manager
+    class SoundManager {
+        constructor() {
+            this.ctx = null;
+        }
+        init() {
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        playTick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.06);
+        }
+        playGoal() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            let osc1 = this.ctx.createOscillator();
+            let gain1 = this.ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(this.ctx.destination);
+            osc1.frequency.setValueAtTime(2000, this.ctx.currentTime);
+            osc1.frequency.linearRampToValueAtTime(2200, this.ctx.currentTime + 0.15);
+            osc1.frequency.linearRampToValueAtTime(2000, this.ctx.currentTime + 0.3);
+            gain1.gain.setValueAtTime(0.1, this.ctx.currentTime);
+            gain1.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.2);
+            gain1.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+            osc1.start();
+            osc1.stop(this.ctx.currentTime + 0.4);
+
+            setTimeout(() => {
+                let bufferSize = 2 * this.ctx.sampleRate;
+                let noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                let output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+                let whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+
+                let filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1000;
+                filter.Q.value = 1.5;
+
+                let gainNode = this.ctx.createGain();
+                whiteNoise.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+
+                gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.3);
+                gainNode.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 1.0);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.0);
+
+                whiteNoise.start();
+                whiteNoise.stop(this.ctx.currentTime + 2.0);
+            }, 300);
+        }
+        playMiss() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.7);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.75);
+        }
+        playKick() {
+            this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.15);
+        }
+    }
+
+    const sound = new SoundManager();
+
+    // WS Connection
+    const sessionId = "{{ session.id }}";
+    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socketUrl = wsScheme + '://' + window.location.host + '/ws/fifa/' + sessionId + '/';
+    let socket = new WebSocket(socketUrl);
+
+    // DOM Screens
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    const playingScreen = document.getElementById('playingScreen');
+    const animationScreen = document.getElementById('animationScreen');
+    const completedScreen = document.getElementById('completedScreen');
+    const connectionStatus = document.getElementById('connectionStatus');
+
+    const readyCheckbox = document.getElementById('readyCheckbox');
+    const readyStatusBadge = document.getElementById('readyStatusBadge');
+    
+    const questionNumText = document.getElementById('questionNumText');
+    const questionText = document.getElementById('questionText');
+    const timerCountdown = document.getElementById('timerCountdown');
+    const lockMessage = document.getElementById('lockMessage');
+    const optionsGrid = document.getElementById('optionsGrid');
+    
+    const btnOptA = document.getElementById('btnOptA');
+    const btnOptB = document.getElementById('btnOptB');
+    const btnOptC = document.getElementById('btnOptC');
+    const btnOptD = document.getElementById('btnOptD');
+
+    const animCanvas = document.getElementById('animCanvas');
+    const ctx = animCanvas.getContext('2d');
+    const animationTitleText = document.getElementById('animationTitleText');
+    const antiCheatOverlay = document.getElementById('antiCheatOverlay');
+
+    const champGroupName = document.getElementById('champGroupName');
+    const champPlayerName = document.getElementById('champPlayerName');
+
+    // Gameplay States
+    let playerRegistered = false;
+    const playerId = "{{ player.id }}";
+    let activeQuestionId = null;
+    let timerInterval = null;
+    let timerSeconds = 12;
+    let timeStarted = 0;
+    let isAnswered = false;
+    let animationFrameId = null;
+    let hasCheated = false;
+
+    // Visibility API (Anti-cheat)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && playingScreen.style.display === 'block' && !isAnswered && activeQuestionId) {
+            triggerAntiCheat();
+        }
+    });
+
+    function triggerAntiCheat() {
+        hasCheated = true;
+        antiCheatOverlay.style.display = 'flex';
+        // Auto lock incorrect
+        selectOption(null, true);
+    }
+
+    function dismissCheatWarning() {
+        antiCheatOverlay.style.display = 'none';
+    }
+
+    // Join room & send registration status over WebSocket
+    socket.onopen = function() {
+        connectionStatus.style.display = 'none';
+        socket.send(JSON.stringify({
+            'action': 'join_game',
+            'group_name': '{{ player.group_name }}'
+        }));
+    };
+
+    socket.onclose = function() {
+        connectionStatus.style.display = 'block';
+        setTimeout(() => {
+            socket = new WebSocket(socketUrl);
+        }, 3000);
+    };
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("Student Received Message:", data);
+
+        if (data.type === 'join_success') {
+            playerRegistered = true;
+        } else if (data.type === 'broadcast_question') {
+            loadQuestion(data);
+        } else if (data.type === 'broadcast_reveal') {
+            revealAnswer(data);
+        } else if (data.type === 'broadcast_round_completed') {
+            runRoundAnimation(data);
+        } else if (data.type === 'broadcast_game_completed') {
+            runGameCompleted(data);
+        }
+    };
+
+    // Ready Status Toggle
+    readyCheckbox.onchange = function() {
+        const isReady = readyCheckbox.checked;
+        if (isReady) {
+            readyStatusBadge.innerText = '✅ READY';
+            readyStatusBadge.style.background = '#22c55e';
+        } else {
+            readyStatusBadge.innerText = '⏳ NOT READY';
+            readyStatusBadge.style.background = '#ea580c';
+        }
+        socket.send(JSON.stringify({
+            'action': 'ready_status',
+            'ready': isReady
+        }));
+    };
+
+    function loadQuestion(data) {
+        lobbyScreen.style.display = 'none';
+        playingScreen.style.display = 'block';
+        animationScreen.style.display = 'none';
+        completedScreen.style.display = 'none';
+
+        activeQuestionId = data.question_id;
+        questionNumText.innerText = `Question ${data.question_index + 1}`;
+        questionText.innerText = data.question_text;
+
+        btnOptA.innerText = `A) ${data.option_a}`;
+        btnOptB.innerText = `B) ${data.option_b}`;
+        btnOptC.innerText = `C) ${data.option_c}`;
+        btnOptD.innerText = `D) ${data.option_d}`;
+
+        // Reset option styles
+        const btns = [btnOptA, btnOptB, btnOptC, btnOptD];
+        btns.forEach(b => {
+            b.disabled = false;
+            b.style.background = 'rgba(255, 255, 255, 0.08)';
+            b.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+            b.style.color = 'white';
+        });
+
+        isAnswered = false;
+        hasCheated = false;
+        lockMessage.style.display = 'none';
+        timeStarted = Date.now();
+
+        // Sync and start timer
+        clearInterval(timerInterval);
+        timerSeconds = data.timer_seconds;
+        timerCountdown.innerText = timerSeconds;
+
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            timerCountdown.innerText = timerSeconds;
+            if (timerSeconds <= 3 && timerSeconds > 0) {
+                sound.playTick();
+            }
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                // Timer finished, auto-submit wrong if not answered
+                if (!isAnswered) {
+                    selectOption(null, false);
+                }
+            }
+        }, 1000);
+    }
+
+    function selectOption(option, cheated = false) {
+        if (isAnswered) return;
+        isAnswered = true;
+        clearInterval(timerInterval);
+
+        // Lock buttons
+        const btns = {'A': btnOptA, 'B': btnOptB, 'C': btnOptC, 'D': btnOptD};
+        Object.keys(btns).forEach(k => {
+            btns[k].disabled = true;
+            if (k === option) {
+                btns[k].style.background = '#ca8a04';
+                btns[k].style.borderColor = '#facc15';
+            } else {
+                btns[k].style.background = 'rgba(255,255,255,0.03)';
+                btns[k].style.borderColor = 'rgba(255,255,255,0.05)';
+                btns[k].style.color = 'rgba(255,255,255,0.4)';
+            }
+        });
+
+        const timeTaken = cheated ? parseFloat("{{ session.question_timer }}") : ((Date.now() - timeStarted) / 1000.0);
+        lockMessage.style.display = 'block';
+
+        // Send to server
+        socket.send(JSON.stringify({
+            'action': 'submit_answer',
+            'question_id': activeQuestionId,
+            'selected_option': option,
+            'time_taken': timeTaken
+        }));
+    }
+
+    function revealAnswer(data) {
+        clearInterval(timerInterval);
+        lockMessage.style.display = 'none';
+
+        const correct = data.correct_answer;
+        const sub = data.submissions[playerId];
+        const selected = sub ? sub.option : null;
+
+        const btns = {'A': btnOptA, 'B': btnOptB, 'C': btnOptC, 'D': btnOptD};
+        Object.keys(btns).forEach(k => {
+            btns[k].disabled = true;
+            if (k === correct) {
+                btns[k].style.background = '#15803d'; // Green correct
+                btns[k].style.borderColor = '#22c55e';
+                btns[k].style.color = 'white';
+            } else if (k === selected) {
+                btns[k].style.background = '#b91c1c'; // Red wrong
+                btns[k].style.borderColor = '#ef4444';
+                btns[k].style.color = 'white';
+            } else {
+                btns[k].style.background = 'rgba(0,0,0,0.2)';
+                btns[k].style.borderColor = 'rgba(255,255,255,0.05)';
+                btns[k].style.color = 'rgba(255,255,255,0.2)';
+            }
+        });
+    }
+
+    // ==========================================
+    // FIFA BATTLE ANIMATION SYSTEM
+    // ==========================================
+    function runRoundAnimation(data) {
+        lobbyScreen.style.display = 'none';
+        playingScreen.style.display = 'none';
+        completedScreen.style.display = 'none';
+        animationScreen.style.display = 'block';
+
+        const roundNum = data.round_number;
+        animationTitleText.innerText = `Round ${roundNum} Evaluation`;
+
+        const winnerId = data.winner_id;
+        const winnerName = data.winner_name;
+        const winnerGroup = data.winner_group;
+        const results = data.players_results;
+
+        let canvasWidth = animCanvas.width;
+        let canvasHeight = animCanvas.height;
+
+        let startTime = Date.now();
+        let shootoutDuration = 15000; // 15 seconds for sequential penalty kicks
+        let progressDuration = 5000; // 5 seconds for recap card
+        let animDuration = shootoutDuration + progressDuration; // 20 seconds total
+
+        let playerKeys = Object.keys(results);
+        let numPlayers = playerKeys.length || 1;
+        let turnDuration = shootoutDuration / numPlayers;
+        let particles = [];
+        window.soundTriggered = {};
+
+        function drawRecapCard() {
+            ctx.fillStyle = '#15803d'; 
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            // PHASE 2: STUDENT RECAP CARD
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+            ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+
+            ctx.fillStyle = '#facc15';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`ROUND ${roundNum} COMPLETE!`, canvasWidth/2, canvasHeight/2 - 40);
+
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px sans-serif';
+            if (winnerId) {
+                ctx.fillText(`Winner: ${winnerGroup} (${winnerName})`, canvasWidth/2, canvasHeight/2 + 10);
+            } else {
+                ctx.fillText("No Winner in this round.", canvasWidth/2, canvasHeight/2 + 10);
+            }
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px sans-serif';
+            ctx.fillText("Check the host's screen to see the live pitch positions!", canvasWidth/2, canvasHeight/2 + 50);
+        }
+
+        function animate() {
+            let elapsed = Date.now() - startTime;
+            let progress = elapsed / animDuration;
+
+            if (progress >= 1) {
+                cancelAnimationFrame(animationFrameId);
+                drawRecapCard();
+                
+                // Manual transition logic
+                setTimeout(() => {
+                    animationScreen.style.display = 'none';
+                    playingScreen.style.display = 'block';
+                    questionText.innerText = "Waiting for the host to send the next question...";
+                    const btns = [btnOptA, btnOptB, btnOptC, btnOptD];
+                    btns.forEach(b => {
+                        b.style.display = 'none';
+                    });
+                }, 3000);
+                return;
+            }
+
+            // Draw Background Field
+            ctx.fillStyle = '#15803d'; 
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            if (elapsed < shootoutDuration) {
+                // PHASE 1: CLOSE UP PENALTY SHOOTOUT (SEQUENTIAL KICKS)
+                let turnIdx = Math.floor(elapsed / turnDuration);
+                if (turnIdx >= numPlayers) turnIdx = numPlayers - 1;
+                
+                let activeKey = playerKeys[turnIdx];
+                let pRes = results[activeKey] || { group: 'Guest', name: 'Player' };
+                let isWinner = (activeKey == winnerId);
+                let turnElapsed = elapsed - (turnIdx * turnDuration);
+                let turnProg = turnElapsed / turnDuration; // 0 to 1
+                
+                // Draw penalty card backing
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+                ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+
+                // Draw Goal Post in the center
+                let goalX = canvasWidth / 2;
+                let goalY = 120;
+                let goalW = 340;
+                let goalH = 170;
+
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(goalX - goalW/2, goalY, goalW, goalH);
+                
+                // Goal Net lines
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1.5;
+                let netShake = 0;
+                if (isWinner && turnProg > 0.45 && turnProg < 0.8) {
+                    netShake = Math.sin(Date.now() / 20) * 8; // shaking goal net!
+                }
+                for (let x = goalX - goalW/2 + 20; x < goalX + goalW/2; x += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, goalY);
+                    ctx.lineTo(x + netShake, goalY + goalH);
+                    ctx.stroke();
+                }
+
+                // Goalkeeper avatar
+                let goalieX = goalX;
+                let goalieY = goalY + goalH - 25;
+                if (turnProg > 0.35) {
+                    if (isWinner) {
+                        goalieX = goalX - 100;
+                    } else {
+                        goalieX = goalX + 60;
+                    }
+                }
+                ctx.fillStyle = '#0ea5e9';
+                ctx.beginPath();
+                ctx.arc(goalieX, goalieY, 18, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("GK", goalieX, goalieY + 3);
+
+                // Kicker avatar
+                let kickerX = goalX - 120 + turnProg * 80;
+                if (turnProg > 0.35) kickerX = goalX - 40;
+                let kickerY = goalY + goalH + 60;
+
+                ctx.fillStyle = isWinner ? '#22c55e' : '#94a3b8';
+                ctx.beginPath();
+                ctx.arc(kickerX, kickerY, 20, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Group team name above player head
+                ctx.fillStyle = '#facc15';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(pRes.group, kickerX, kickerY - 28);
+                ctx.fillStyle = 'white';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(pRes.name, kickerX, kickerY + 3);
+
+                // Football ball
+                let ballX = goalX;
+                let ballY = goalY + goalH + 20;
+                let ballR = 10;
+
+                if (turnProg < 0.35) {
+                    ballX = kickerX + 25;
+                    ballY = kickerY - 5;
+                } else {
+                    let shotProg = (turnProg - 0.35) / 0.65;
+                    if (isWinner) {
+                        ballX = (kickerX + 25) + shotProg * (goalX + 110 - (kickerX + 25));
+                        ballY = (kickerY - 5) + shotProg * (goalY + 30 - (kickerY - 5));
+                        ballR = 10 - shotProg * 3;
+                        if (Math.random() < 0.4) {
+                            particles.push({x: ballX, y: ballY, size: Math.random()*3 + 1.5, age: 0});
+                        }
+                    } else {
+                        let missWide = (turnIdx % 2 === 0);
+                        if (missWide) {
+                            ballX = (kickerX + 25) + shotProg * (goalX + 190 - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalY + 20 - (kickerY - 5));
+                        } else {
+                            ballX = (kickerX + 25) + shotProg * (goalieX - (kickerX + 25));
+                            ballY = (kickerY - 5) + shotProg * (goalieY - (kickerY - 5));
+                        }
+                        ballR = 10 - shotProg * 3;
+                    }
+                }
+
+                // draw particles
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+                    p.age++;
+                });
+                particles = particles.filter(p => p.age < 15);
+
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, ballR, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Trigger sounds exactly at kick time
+                let soundKey = `turn_${turnIdx}`;
+                if (!window.soundTriggered[soundKey] && turnProg >= 0.35) {
+                    window.soundTriggered[soundKey] = true;
+                    sound.playKick();
+                    setTimeout(() => {
+                        if (isWinner) {
+                            sound.playGoal();
+                        } else {
+                            sound.playMiss();
+                        }
+                    }, 400); // 400ms delay matches the shot travel time
+                }
+
+                // Text overlay
+                ctx.font = 'bold 26px sans-serif';
+                if (isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillText("GOOOAL!!! ⚽🔥", goalX, goalY - 30);
+                } else if (!isWinner && turnProg > 0.45) {
+                    ctx.fillStyle = '#ef4444';
+                    let txt = (turnIdx % 2 === 0) ? "SHOT OUTSIDE! ❌" : "SAVED BY GOALKEEPER! 🧤";
+                    ctx.fillText(txt, goalX, goalY - 30);
+                }
+            } else {
+                // PHASE 2: STUDENT RECAP CARD
+                drawRecapCard();
+            }
+
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        window.goalSoundPlayed = false;
+        animate();
+    }
+
+    function runGameCompleted(data) {
+        clearInterval(timerInterval);
+        lobbyScreen.style.display = 'none';
+        playingScreen.style.display = 'none';
+        animationScreen.style.display = 'none';
+        completedScreen.style.display = 'block';
+
+        champGroupName.innerText = data.champion_group;
+        champPlayerName.innerText = data.champion_name;
+
+        sound.playGoal();
+    }
+</script>
+{% endblock %}

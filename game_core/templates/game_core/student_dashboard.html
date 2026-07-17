@@ -29,6 +29,29 @@
         </div>
     {% endif %}
 
+    <!-- Live FIFA Quiz Battles -->
+    {% if fifa_sessions %}
+        <div style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); padding: 1.5rem 2rem; border-radius: var(--radius-md); color: white; margin-bottom: 2.5rem; box-shadow: 0 10px 20px rgba(22, 101, 52, 0.2); border: 2.5px solid #facc15;">
+            <h4 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 800; color: #facc15; display: flex; align-items: center; gap: 0.5rem;">
+                ⚽ LIVE FIFA QUIZ BATTLE ACTIVE!
+            </h4>
+            <p style="margin: 0 0 1.25rem 0; opacity: 0.9; font-size: 0.95rem;">A live quiz match is currently active. Register your group and jump onto the pitch!</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                {% for session in fifa_sessions %}
+                    <div style="background: rgba(0, 0, 0, 0.25); border: 1.2px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.05rem;">{{ session.title }}</div>
+                            <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.2rem;">Timer: {{ session.question_timer }}s | Questions: {{ session.total_questions }}</div>
+                        </div>
+                        <a href="{% url 'fifa_student_join' session.id %}" style="background: #facc15; color: #1e293b; padding: 0.5rem 1.25rem; border-radius: 20px; font-weight: 800; text-decoration: none; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(250, 204, 21, 0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                            Join Match
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     <!-- Main Navigation Grid -->
     <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem;" class="grid-3col-md">
         

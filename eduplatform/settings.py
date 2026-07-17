@@ -35,12 +35,14 @@ CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.dev']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'game_core',
 ]
 
@@ -73,14 +75,42 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'eduplatform.wsgi.application'
+ASGI_APPLICATION = 'eduplatform.asgi.application'
 
+AUTH_USER_MODEL = 'game_core.User'
+
+# Channels Configuration
+if os.environ.get("USE_REDIS") or not DEBUG:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
-}
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    DATABASES = {
+        'default': dj_database_url.parse(db_url)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FIFA Quiz Battle - Match Analytics{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem; font-family: 'Outfit', 'Segoe UI', sans-serif;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <a href="{% url 'fifa_dashboard' %}" style="color: #0284c7; text-decoration: none; font-weight: 700; font-size: 0.95rem;">← Back to FIFA Dashboard</a>
+            <h1 style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 800; color: #0f172a;">Match Analytics 📊</h1>
+            <p style="margin: 0.25rem 0 0 0; color: #64748b;">Review performance for session: <strong>{{ session.title }}</strong></p>
+        </div>
+        <div style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 8px; color: #475569; font-size: 0.85rem; font-weight: 600;">
+            Played on {{ session.created_at|date:"M d, Y H:i" }}
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Groups Participated</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;">{{ session.players.count }}</div>
+        </div>
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Questions</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;">{{ session.total_questions }}</div>
+        </div>
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.01);">
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Avg Answer Timer</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;">{{ session.question_timer }}s</div>
+        </div>
+    </div>
+
+    <!-- Student Performance Grid -->
+    <h2 style="font-size: 1.4rem; color: #1e293b; font-weight: 800; margin-bottom: 1.25rem;">Group Rankings & Performance</h2>
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.02); margin-bottom: 3rem;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Student / Group</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Field Wins 🏆</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Accuracy %</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Avg Response Time</th>
+                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Correct Answers</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in analytics %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 1rem 1.5rem;">
+                        <div style="font-weight: 700; color: #0f172a;">{{ item.player.student.name }}</div>
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Group: {{ item.player.group_name }}</div>
+                    </td>
+                    <td style="padding: 1rem 1.5rem; font-weight: 800; color: #15803d; font-size: 1.1rem;">
+                        {{ item.player.wins }} wins
+                    </td>
+                    <td style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-weight: 700; color: #334155;">{{ item.accuracy|floatformat:1 }}%</span>
+                            <div style="background: #e2e8f0; height: 6px; width: 60px; border-radius: 3px; overflow: hidden;">
+                                <div style="background: {% if item.accuracy >= 75 %}#22c55e{% elif item.accuracy >= 50 %}#eab308{% else %}#ef4444{% endif %}; width: {{ item.accuracy }}%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 600;">
+                        {{ item.avg_time|floatformat:2 }}s
+                    </td>
+                    <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 600;">
+                        {{ item.total_correct }} / {{ item.total_answers }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 3rem; text-align: center; color: #94a3b8;">
+                        No player stats logged.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Weak Topics / Questions Box -->
+    <h2 style="font-size: 1.4rem; color: #1e293b; font-weight: 800; margin-bottom: 1.25rem;">Weak Questions (Accuracy < 50%) ⚠️</h2>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 3rem;">
+        {% for stat in weak_questions %}
+        <div style="background: #fff5f5; border: 1.5px solid #feb2b2; border-radius: 10px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span style="font-weight: 800; color: #c53030; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Question {{ stat.question.order|add:1 }}</span>
+                <p style="margin: 0.25rem 0 0 0; font-weight: 700; color: #2d3748;">{{ stat.question.question_text }}</p>
+                <div style="font-size: 0.85rem; color: #4a5568; margin-top: 0.5rem;">
+                    Correct option: <strong>{{ stat.question.correct_answer }}</strong> | Options: 
+                    A: {{ stat.question.option_a }} | B: {{ stat.question.option_b }} | C: {{ stat.question.option_c }} | D: {{ stat.question.option_d }}
+                </div>
+            </div>
+            <div style="text-align: right; min-width: 100px;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #c53030;">{{ stat.accuracy|floatformat:1 }}%</div>
+                <div style="font-size: 0.75rem; color: #9b2c2c; font-weight: 700;">ACCURACY</div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="background: #f0fdf4; border: 1.5px dashed #86efac; border-radius: 10px; padding: 2rem; text-align: center; color: #15803d; font-weight: 600;">
+            🎉 Awesome job! No questions had less than 50% accuracy.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Question Analysis Breakdown -->
+    <h2 style="font-size: 1.4rem; color: #1e293b; font-weight: 800; margin-bottom: 1.25rem;">Question Breakdown</h2>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for stat in question_stats %}
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <span style="font-weight: 800; color: #64748b; font-size: 0.8rem; text-transform: uppercase;">Question {{ stat.question.order|add:1 }}</span>
+                <span style="background: {% if stat.accuracy >= 75 %}#f0fdf4; color: #16a34a;{% elif stat.accuracy >= 50 %}#fef9c3; color: #ca8a04;{% else %}#fef2f2; color: #dc2626;{% endif %}; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                    {{ stat.accuracy|floatformat:0 }}% Correct
+                </span>
+            </div>
+            <p style="margin: 0; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem;">{{ stat.question.question_text }}</p>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; font-size: 0.8rem; color: #475569;">
+                <div style="padding: 0.5rem; border-radius: 6px; border: 1.1px solid {% if stat.question.correct_answer == 'A' %}#bbf7d0; background: #f0fdf4; font-weight:700;{% else %}#f1f5f9; background:#f8fafc;{% endif %};">A: {{ stat.question.option_a }}</div>
+                <div style="padding: 0.5rem; border-radius: 6px; border: 1.1px solid {% if stat.question.correct_answer == 'B' %}#bbf7d0; background: #f0fdf4; font-weight:700;{% else %}#f1f5f9; background:#f8fafc;{% endif %};">B: {{ stat.question.option_b }}</div>
+                <div style="padding: 0.5rem; border-radius: 6px; border: 1.1px solid {% if stat.question.correct_answer == 'C' %}#bbf7d0; background: #f0fdf4; font-weight:700;{% else %}#f1f5f9; background:#f8fafc;{% endif %};">C: {{ stat.question.option_c }}</div>
+                <div style="padding: 0.5rem; border-radius: 6px; border: 1.1px solid {% if stat.question.correct_answer == 'D' %}#bbf7d0; background: #f0fdf4; font-weight:700;{% else %}#f1f5f9; background:#f8fafc;{% endif %};">D: {{ stat.question.option_d }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
