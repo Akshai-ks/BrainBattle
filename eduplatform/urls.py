@@ -19,8 +19,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.http import HttpResponse
+
+def loaderio_view(request):
+    return HttpResponse("loaderio-cddfd63c006292899295e61a7593259e")
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('loaderio-cddfd63c006292899295e61a7593259e/', loaderio_view),
+    path('loaderio-cddfd63c006292899295e61a7593259e.txt', loaderio_view),
     path('', include('game_core.urls')),
 ]
 
