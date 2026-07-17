@@ -286,10 +286,8 @@
             loadQuestion(data);
         } else if (data.type === 'broadcast_reveal') {
             revealQuestionResults(data);
-        } else if (data.type === 'broadcast_round_completed') {
-            runRoundAnimation(data);
         } else if (data.type === 'broadcast_game_completed') {
-            runGameCompleted(data);
+            runWinnerShootoutAnimation(data);
         }
     };
 
@@ -412,116 +410,126 @@
         });
     }
 
-    function runRoundAnimation(data) {
+    function runWinnerShootoutAnimation(data) {
         lobbyView.style.display = 'none';
         playingView.style.display = 'none';
         completedView.style.display = 'none';
         animationView.style.display = 'block';
 
-        let roundNum = data.round_number;
-        let winnerId = data.winner_id;
-        let results = data.players_results;
-        animationTitleText.innerText = `Round ${roundNum} Evaluation`;
+        let winnerGroup = data.champion_group || "Winner";
+        let winnerName = data.champion_name || "Player";
+        animationTitleText.innerText = "Match Champion Celebration";
 
         let canvasWidth = animCanvas.width;
         let canvasHeight = animCanvas.height;
 
         let startTime = Date.now();
-        let shootoutDuration = 15000; // 15 seconds for shootout
-        let progressDuration = 5000; // 5 seconds for visual field reveal
-        let animDuration = shootoutDuration + progressDuration; // 20 seconds total
+        let animDuration = 15000; // 15 seconds total
+        let kickPhaseDuration = 4500; // 4.5 seconds for the penalty kick
 
-        let playerKeys = Object.keys(results);
-        let numPlayers = playerKeys.length || 1;
-        let turnDuration = shootoutDuration / numPlayers;
         let particles = [];
-        window.soundTriggered = {};
+        let confetti = [];
+        window.soundTriggered = false;
 
-        function drawVisualLeaderboard(elapsedTime) {
-            ctx.fillStyle = '#15803d'; 
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
-            
-            ctx.beginPath();
-            ctx.moveTo(canvasWidth/2, 40);
-            ctx.lineTo(canvasWidth/2, canvasHeight - 40);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, 60, 0, Math.PI*2);
-            ctx.stroke();
-
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(40, canvasHeight/2 - 50, 20, 100);
-            ctx.fillRect(canvasWidth - 60, canvasHeight/2 - 50, 20, 100);
-
-            let laneHeight = (canvasHeight - 100) / Math.max(numPlayers, 1);
-
-            playerKeys.forEach((key, idx) => {
-                let pRes = results[key];
-                let laneY = 50 + idx * laneHeight;
-
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(40, laneY + laneHeight);
-                ctx.lineTo(canvasWidth - 40, laneY + laneHeight);
-                ctx.stroke();
-
-                ctx.fillStyle = '#cbd5e1';
-                ctx.font = 'bold 13px sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText(`${pRes.group} (${pRes.name})`, 60, laneY + 22);
-
-                let currentWins = pRes.wins;
-                let isWinner = (key == winnerId);
-                
-                let displayWins = currentWins;
-                if (isWinner) {
-                    let progElapsed = elapsedTime - shootoutDuration;
-                    let t = Math.min(progElapsed / progressDuration, 1.0);
-                    displayWins = (currentWins - 1) + t;
-                }
-
-                let startX = 220;
-                let endX = canvasWidth - 120;
-                let playerX = startX + (displayWins / 5) * (endX - startX);
-                let playerY = laneY + laneHeight/2 + 10;
-
-                // Draw player holding ball next to feet
-                ctx.fillStyle = isWinner ? '#facc15' : '#94a3b8';
-                ctx.strokeStyle = isWinner ? '#b45309' : '#475569';
-                ctx.lineWidth = 2;
-                
-                ctx.beginPath();
-                ctx.arc(playerX, playerY - 12, 8, 0, Math.PI*2);
-                ctx.fill();
-                ctx.stroke();
-                
-                ctx.fillStyle = isWinner ? '#eab308' : '#64748b';
-                ctx.fillRect(playerX - 6, playerY - 4, 12, 10);
-                
-                ctx.strokeStyle = '#475569';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(playerX - 3, playerY + 6);
-                ctx.lineTo(playerX - 3, playerY + 12);
-                ctx.moveTo(playerX + 3, playerY + 6);
-                ctx.lineTo(playerX + 3, playerY + 12);
-                ctx.stroke();
-
-                // Football next to legs
-                ctx.fillStyle = 'white';
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(playerX + 10, playerY + 10, 6, 0, Math.PI*2);
-                ctx.fill();
-                ctx.stroke();
+        // Initialize confetti
+        for (let i = 0; i < 150; i++) {
+            confetti.push({
+                x: Math.random() * canvasWidth,
+                y: Math.random() * -canvasHeight,
+                size: Math.random() * 8 + 4,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                speedX: Math.random() * 4 - 2,
+                speedY: Math.random() * 3 + 2,
+                rot: Math.random() * Math.PI,
+                rotSpeed: Math.random() * 0.1 - 0.05
             });
+        }
+
+        function drawTrophyCelebration() {
+            // Dark elegant backdrop
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+            ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(40, 40, canvasWidth - 80, canvasHeight - 80);
+
+            // Confetti physics
+            confetti.forEach(c => {
+                c.y += c.speedY;
+                c.x += c.speedX;
+                c.rot += c.rotSpeed;
+                if (c.y > canvasHeight - 40) {
+                    c.y = Math.random() * -50;
+                    c.x = Math.random() * canvasWidth;
+                }
+                ctx.fillStyle = c.color;
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rot);
+                ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size);
+                ctx.restore();
+            });
+
+            // Glowing Gold Trophy Shape
+            let tx = canvasWidth / 2;
+            let ty = canvasHeight / 2 + 50;
+
+            // Trophy Glow
+            let glow = ctx.createRadialGradient(tx, ty - 60, 20, tx, ty - 60, 160);
+            glow.addColorStop(0, 'rgba(250, 204, 21, 0.35)');
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(tx, ty - 60, 160, 0, Math.PI*2);
+            ctx.fill();
+
+            // Trophy base
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(tx - 60, ty - 15, 120, 20);
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(tx - 45, ty - 35, 90, 20);
+
+            // Trophy stem
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(tx - 15, ty - 70, 30, 35);
+
+            // Trophy Cup Body
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.moveTo(tx - 50, ty - 130);
+            ctx.quadraticCurveTo(tx - 50, ty - 70, tx, ty - 70);
+            ctx.quadraticCurveTo(tx + 50, ty - 70, tx + 50, ty - 130);
+            ctx.closePath();
+            ctx.fill();
+
+            // Top rim of cup
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.ellipse(tx, ty - 130, 50, 12, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Trophy handles
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(tx - 50, ty - 100, 22, Math.PI * 0.7, Math.PI * 1.7);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(tx + 50, ty - 100, 22, Math.PI * 1.3, Math.PI * 0.3);
+            ctx.stroke();
+
+            // Text
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#facc15';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText("🏆 MATCH CHAMPIONS 🏆", tx, ty - 180);
+
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillText(winnerGroup, tx, ty + 50);
+            ctx.fillStyle = '#a7f3d0';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText(`Player: ${winnerName}`, tx, ty + 80);
         }
 
         function animate() {
@@ -530,23 +538,14 @@
 
             if (progress >= 1) {
                 cancelAnimationFrame(animationFrameId);
-                drawVisualLeaderboard(animDuration);
-                // Hold static view showing visual leaderboard until teacher triggers next level
+                runGameCompleted(data);
                 return;
             }
 
-            if (elapsed < shootoutDuration) {
-                // PHASE 1: CLOSE UP PENALTY SHOOTOUT (SEQUENTIAL KICKS)
-                let turnIdx = Math.floor(elapsed / turnDuration);
-                if (turnIdx >= numPlayers) turnIdx = numPlayers - 1;
-                
-                let activeKey = playerKeys[turnIdx];
-                let pRes = results[activeKey] || { group: 'Guest', name: 'Player' };
-                let isWinner = (activeKey == winnerId);
-                let turnElapsed = elapsed - (turnIdx * turnDuration);
-                let turnProg = turnElapsed / turnDuration;
-                
-                // Draw penalty backing card
+            if (elapsed < kickPhaseDuration) {
+                // PHASE 1: PENALTY KICK
+                let turnProg = elapsed / kickPhaseDuration;
+
                 ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
                 ctx.fillRect(40, 40, canvasWidth - 80, canvasHeight - 80);
                 ctx.strokeStyle = '#facc15';
@@ -562,11 +561,11 @@
                 ctx.lineWidth = 6;
                 ctx.strokeRect(goalX - goalW/2, goalY, goalW, goalH);
                 
-                // Net
+                // Net shake
                 ctx.strokeStyle = 'rgba(255,255,255,0.2)';
                 ctx.lineWidth = 1.5;
                 let netShake = 0;
-                if (isWinner && turnProg > 0.45 && turnProg < 0.8) {
+                if (turnProg > 0.45 && turnProg < 0.85) {
                     netShake = Math.sin(Date.now() / 20) * 8;
                 }
                 for (let x = goalX - goalW/2 + 20; x < goalX + goalW/2; x += 20) {
@@ -576,17 +575,13 @@
                     ctx.stroke();
                 }
 
-                // GK
+                // GK dives wrong way
                 let goalieX = goalX;
                 let goalieY = goalY + goalH - 25;
                 if (turnProg > 0.35) {
-                    if (isWinner) {
-                        goalieX = goalX - 100;
-                    } else {
-                        goalieX = goalX + 60;
-                    }
+                    goalieX = goalX - 100;
                 }
-                ctx.fillStyle = '#0ea5e9';
+                ctx.fillStyle = '#ef4444';
                 ctx.beginPath();
                 ctx.arc(goalieX, goalieY, 18, 0, Math.PI*2);
                 ctx.fill();
@@ -600,7 +595,7 @@
                 if (turnProg > 0.35) kickerX = goalX - 40;
                 let kickerY = goalY + goalH + 60;
 
-                ctx.fillStyle = isWinner ? '#22c55e' : '#94a3b8';
+                ctx.fillStyle = '#22c55e';
                 ctx.beginPath();
                 ctx.arc(kickerX, kickerY, 20, 0, Math.PI*2);
                 ctx.fill();
@@ -608,10 +603,10 @@
                 ctx.fillStyle = '#facc15';
                 ctx.font = 'bold 15px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(pRes.group, kickerX, kickerY - 28);
+                ctx.fillText(winnerGroup, kickerX, kickerY - 28);
                 ctx.fillStyle = 'white';
                 ctx.font = '10px sans-serif';
-                ctx.fillText(pRes.name, kickerX, kickerY + 3);
+                ctx.fillText(winnerName, kickerX, kickerY + 3);
 
                 // Ball
                 let ballX = goalX;
@@ -623,23 +618,11 @@
                     ballY = kickerY - 5;
                 } else {
                     let shotProg = (turnProg - 0.35) / 0.65;
-                    if (isWinner) {
-                        ballX = (kickerX + 25) + shotProg * (goalX + 110 - (kickerX + 25));
-                        ballY = (kickerY - 5) + shotProg * (goalY + 30 - (kickerY - 5));
-                        ballR = 10 - shotProg * 3;
-                        if (Math.random() < 0.4) {
-                            particles.push({x: ballX, y: ballY, size: Math.random()*3 + 1.5, age: 0});
-                        }
-                    } else {
-                        let missWide = (turnIdx % 2 === 0);
-                        if (missWide) {
-                            ballX = (kickerX + 25) + shotProg * (goalX + 190 - (kickerX + 25));
-                            ballY = (kickerY - 5) + shotProg * (goalY + 20 - (kickerY - 5));
-                        } else {
-                            ballX = (kickerX + 25) + shotProg * (goalieX - (kickerX + 25));
-                            ballY = (kickerY - 5) + shotProg * (goalieY - (kickerY - 5));
-                        }
-                        ballR = 10 - shotProg * 3;
+                    ballX = (kickerX + 25) + shotProg * (goalX + 110 - (kickerX + 25));
+                    ballY = (kickerY - 5) + shotProg * (goalY + 30 - (kickerY - 5));
+                    ballR = 10 - shotProg * 3;
+                    if (Math.random() < 0.4) {
+                        particles.push({x: ballX, y: ballY, size: Math.random()*3 + 1.5, age: 0});
                     }
                 }
 
@@ -661,36 +644,27 @@
                 ctx.fill();
                 ctx.stroke();
 
-                let soundKey = `turn_${turnIdx}`;
-                if (!window.soundTriggered[soundKey] && turnProg >= 0.35) {
-                    window.soundTriggered[soundKey] = true;
+                if (!window.soundTriggered && turnProg >= 0.35) {
+                    window.soundTriggered = true;
                     sound.playKick();
                     setTimeout(() => {
-                        if (isWinner) {
-                            sound.playGoal();
-                        } else {
-                            sound.playMiss();
-                        }
+                        sound.playGoal();
                     }, 400);
                 }
 
                 ctx.font = 'bold 26px sans-serif';
-                if (isWinner && turnProg > 0.45) {
+                ctx.textAlign = 'center';
+                if (turnProg > 0.45) {
                     ctx.fillStyle = '#22c55e';
                     ctx.fillText("GOOOAL!!! ⚽🔥", goalX, goalY - 30);
-                } else if (!isWinner && turnProg > 0.45) {
-                    ctx.fillStyle = '#ef4444';
-                    let txt = (turnIdx % 2 === 0) ? "SHOT OUTSIDE! ❌" : "SAVED BY GOALKEEPER! 🧤";
-                    ctx.fillText(txt, goalX, goalY - 30);
                 }
             } else {
-                drawVisualLeaderboard(elapsed);
+                drawTrophyCelebration();
             }
 
             animationFrameId = requestAnimationFrame(animate);
         }
 
-        window.goalSoundPlayed = false;
         animate();
     }
 

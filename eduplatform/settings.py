@@ -80,12 +80,12 @@ ASGI_APPLICATION = 'eduplatform.asgi.application'
 AUTH_USER_MODEL = 'game_core.User'
 
 # Channels Configuration
-if os.environ.get("USE_REDIS") or not DEBUG:
+if os.environ.get("REDIS_URL"):
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")],
+                "hosts": [os.environ.get("REDIS_URL")],
             },
         },
     }
@@ -104,6 +104,7 @@ if db_url:
     DATABASES = {
         'default': dj_database_url.parse(db_url)
     }
+    DATABASES['default']['CONN_MAX_AGE'] = 60  # Enable connection pooling for production concurrency
 else:
     DATABASES = {
         'default': {

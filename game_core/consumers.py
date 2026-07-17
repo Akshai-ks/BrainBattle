@@ -275,18 +275,11 @@ class FifaConsumer(JsonWebsocketConsumer):
             # Current question index is incremented
             next_idx = session.current_question_index + 1
             
-            # Check if we just completed a round (every 5 questions)
-            current_q_num = session.current_question_index + 1
-            if current_q_num % 5 == 0:
-                # We need to evaluate the round winner and trigger animation!
-                self.evaluate_round_and_broadcast(session.current_round)
-                # Increment round on the session
-                session.current_round += 1
-                session.current_question_index = next_idx
-                session.save()
-                return
+            # Check if any team has touched the finish point (wins >= 5) or out of questions
+            has_finisher = session.players.filter(wins__gte=5).exists()
+            is_out_of_questions = (next_idx >= total_q or next_idx >= session.total_questions)
 
-            if next_idx >= total_q or next_idx >= session.total_questions:
+            if has_finisher or is_out_of_questions:
                 # Game is completed!
                 self.complete_game(session)
             else:
@@ -319,7 +312,6 @@ class FifaConsumer(JsonWebsocketConsumer):
                 }
             )
         except FifaQuestion.DoesNotExist:
-            # Out of questions, complete the game
             session = FifaGameSession.objects.get(id=self.session_id)
             self.complete_game(session)
 
@@ -340,13 +332,39 @@ class FifaConsumer(JsonWebsocketConsumer):
                     'time_taken': log.time_taken
                 }
 
+            # Determine fastest correct team (question winner)
+            correct_logs = logs.filter(is_correct=True).order_by('time_taken')
+            question_winner_id = None
+            question_winner_group = None
+            if correct_logs.exists():
+                winner_player = correct_logs.first().player
+                winner_player.wins += 1
+                winner_player.save()
+                question_winner_id = winner_player.id
+                question_winner_group = winner_player.group_name
+
+            # Compile updated players data for the standings pitch
+            players = session.players.all()
+            players_data = []
+            for p in players:
+                players_data.append({
+                    'id': p.id,
+                    'name': p.student.name,
+                    'group_name': p.group_name,
+                    'wins': p.wins,
+                    'is_ready': p.is_ready
+                })
+
             async_to_sync(self.channel_layer.group_send)(
                 self.group_name,
                 {
                     'type': 'broadcast_reveal',
                     'question_id': question.id,
                     'correct_answer': question.correct_answer,
-                    'submissions': submissions
+                    'submissions': submissions,
+                    'question_winner_id': question_winner_id,
+                    'question_winner_group': question_winner_group,
+                    'players_data': players_data
                 }
             )
         except Exception as e:
@@ -365,97 +383,6 @@ class FifaConsumer(JsonWebsocketConsumer):
         except Exception:
             pass
 
-    def evaluate_round_and_broadcast(self, round_num):
-        session = FifaGameSession.objects.get(id=self.session_id)
-        
-        # Questions in this round: indices (round_num-1)*questions_per_round to round_num*questions_per_round-1
-        start_idx = (round_num - 1) * session.questions_per_round
-        end_idx = round_num * session.questions_per_round
-        questions = session.questions.filter(order__gte=start_idx, order__lt=end_idx)
-        
-        players = session.players.all()
-        eligible_players = []
-        all_players_results = {}
-
-        for player in players:
-            logs = FifaAnswerLog.objects.filter(player=player, question__in=questions)
-            correct_count = logs.filter(is_correct=True).count()
-            
-            # Disqualified if they got any wrong option. 
-            # Timeout (selected_option is None) counts as incorrect but let's treat it as:
-            # If they got a wrong option (non-null and incorrect), that's definitely disqualified.
-            # If they didn't answer (None), is it a wrong answer? Yes, incorrect.
-            # To be eligible, they must have at least 3 correct, and 0 incorrect answers.
-            # Wait, if incorrect counts both wrong options and timeouts, then a timeout will also disqualify them.
-            # Let's count incorrect as ANY log with is_correct=False.
-            incorrect_count = logs.filter(is_correct=False).count()
-            
-            total_score = 0
-            total_time = 0.0
-            for log in logs:
-                if log.is_correct:
-                    total_score += 10
-                    total_time += log.time_taken
-                else:
-                    total_score -= 2 # Negative marking
-            
-            is_eligible = (correct_count == session.questions_per_round and incorrect_count == 0)
-            
-            all_players_results[player.id] = {
-                'name': player.student.name,
-                'group': player.group_name,
-                'correct_count': correct_count,
-                'incorrect_count': incorrect_count,
-                'total_score': total_score,
-                'total_time': total_time,
-                'is_eligible': is_eligible,
-                'wins': player.wins
-            }
-
-            if is_eligible:
-                eligible_players.append({
-                    'player': player,
-                    'score': total_score,
-                    'time': total_time
-                })
-
-        winner_player = None
-        winner_id = None
-        winner_group = None
-        
-        if eligible_players:
-            # Sort: highest score, then fastest time
-            eligible_players.sort(key=lambda x: (-x['score'], x['time']))
-            winner_player = eligible_players[0]['player']
-            winner_player.wins += 1
-            winner_player.save()
-            
-            # Save Round Winner
-            round_obj, _ = FifaRound.objects.get_or_create(
-                session=session,
-                round_number=round_num
-            )
-            round_obj.is_completed = True
-            round_obj.winner = winner_player
-            round_obj.save()
-            
-            winner_id = winner_player.id
-            winner_group = winner_player.group_name
-            # Update wins count in results dictionary
-            all_players_results[winner_player.id]['wins'] = winner_player.wins
-
-        # Broadcast round results and trigger FIFA animation
-        async_to_sync(self.channel_layer.group_send)(
-            self.group_name,
-            {
-                'type': 'broadcast_round_completed',
-                'round_number': round_num,
-                'winner_id': winner_id,
-                'winner_name': winner_player.student.name if winner_player else "No Eligible Winner",
-                'winner_group': winner_group,
-                'players_results': all_players_results
-            }
-        )
 
     def complete_game(self, session):
         session.status = 'completed'
@@ -512,10 +439,28 @@ class FifaConsumer(JsonWebsocketConsumer):
 
     def broadcast_reveal(self, event):
         self.send_json(event)
-        # Only the host consumer schedules the next action to avoid duplicate timers
         if self.is_host:
-            timer = threading.Timer(4.0, self.auto_advance_background)
+            timer = threading.Timer(5.0, self.auto_advance_background)
             timer.start()
+
+    def auto_advance_background(self):
+        close_old_connections()
+        try:
+            session = FifaGameSession.objects.get(id=self.session_id)
+            total_q = session.questions.count()
+            next_idx = session.current_question_index + 1
+
+            has_finisher = session.players.filter(wins__gte=5).exists()
+            is_out_of_questions = (next_idx >= total_q or next_idx >= session.total_questions)
+
+            if has_finisher or is_out_of_questions:
+                self.complete_game(session)
+            else:
+                session.current_question_index = next_idx
+                session.save()
+                self.send_current_question()
+        except Exception as e:
+            print("Error in auto_advance_background:", e)
 
     def broadcast_player_submitted(self, event):
         self.send_json(event)
@@ -525,45 +470,6 @@ class FifaConsumer(JsonWebsocketConsumer):
 
     def broadcast_game_completed(self, event):
         self.send_json(event)
-
-    # Background Automated Transitions
-    def auto_advance_background(self):
-        close_old_connections()
-        try:
-            session = FifaGameSession.objects.get(id=self.session_id)
-            total_q = session.questions.count()
-            current_q_num = session.current_question_index + 1
-            next_idx = session.current_question_index + 1
-            
-            # Check if this question ends a round
-            if current_q_num % session.questions_per_round == 0:
-                self.evaluate_round_and_broadcast(session.current_round)
-                # Advance round state in session
-                session.current_round += 1
-                session.current_question_index = next_idx
-                session.save()
-                return
-
-            if next_idx >= total_q or next_idx >= session.total_questions:
-                self.complete_game(session)
-            else:
-                session.current_question_index = next_idx
-                session.save()
-                self.send_current_question()
-        except Exception as e:
-            print("Error in auto_advance_background:", e)
-
-    def auto_next_question_background(self):
-        close_old_connections()
-        try:
-            session = FifaGameSession.objects.get(id=self.session_id)
-            total_q = session.questions.count()
-            if session.current_question_index >= total_q or session.current_question_index >= session.total_questions:
-                self.complete_game(session)
-            else:
-                self.send_current_question()
-        except Exception as e:
-            print("Error in auto_next_question_background:", e)
 
     def send_lobby_state(self):
         try:
