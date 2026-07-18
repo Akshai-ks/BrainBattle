@@ -138,43 +138,17 @@ def teacher_dashboard(request):
     return render(request, 'game_core/teacher_dashboard.html', context)
 
 # Student Dashboard & Game Selection
-@student_login_required
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='student_login')
 def student_dashboard(request):
-    student = get_object_or_404(Student, id=request.session['student_id'])
-    
-    # Load settings for the teacher
-    teacher = User.objects.filter(username='teacher').first()
-    teacher_settings = None
-    if teacher:
-        teacher_settings, _ = TeacherSetting.objects.get_or_create(teacher=teacher)
-    else:
-        first_setting = TeacherSetting.objects.first()
-        if first_setting:
-            teacher_settings = first_setting
-        else:
-            default_teacher = User.objects.filter(is_superuser=True).first()
-            if default_teacher:
-                teacher_settings, _ = TeacherSetting.objects.get_or_create(teacher=default_teacher)
-            else:
-                teacher_settings = TeacherSetting()
-                
-    # Fetch Announcements
-    announcements = Announcement.objects.all().order_by('-created_at')
-    
-    # Query games created by this student
-    my_created_games = Game.objects.filter(created_by_student=student).order_by('-created_at')
-    
-    # Query active FIFA Quiz Battle sessions
-    fifa_sessions = FifaGameSession.objects.filter(status__in=['waiting', 'playing']).order_by('-created_at')
-    
-    context = {
-        'student': student,
-        'teacher_settings': teacher_settings,
-        'announcements': announcements,
-        'my_created_games': my_created_games,
-        'fifa_sessions': fifa_sessions,
-    }
-    return render(request, 'game_core/student_dashboard.html', context)
+    student = Student.objects.filter(user=request.user).first()
+
+    if not student:
+        return redirect('student_login')
+
+    return render(request, 'student_dashboard.html', {'student': student})
 
 
 @login_required
