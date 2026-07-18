@@ -11,6 +11,7 @@ class Subject(models.Model):
         return self.name
 
 class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='student_profile')
     name = models.CharField(max_length=150)
     register_number = models.CharField(max_length=50, unique=True)
     email = models.EmailField(blank=True, null=True)

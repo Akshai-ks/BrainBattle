@@ -93,8 +93,11 @@ def student_register(request):
     return redirect('student_login')
 
 def student_login(request):
-    if request.session.get('student_id'):
-        return redirect('student_dashboard')
+    if request.user.is_authenticated:
+        student = Student.objects.filter(user=request.user).first()
+        if student:
+            return redirect('student_dashboard')
+
     if request.method == 'POST':
         form = StudentLoginForm(request.POST)
         if form.is_valid():
@@ -104,19 +107,45 @@ def student_login(request):
                 from django.contrib.auth.hashers import check_password
                 student = Student.objects.get(register_number=reg_num)
                 if student.password and check_password(password, student.password):
-                    request.session['student_id'] = student.id
-                    request.session['student_name'] = student.name
+                    # Ensure Django User exists for this student
+                    user, created = User.objects.get_or_create(
+                        username=reg_num,
+                        defaults={
+                            'email': student.email or '',
+                            'is_teacher': False
+                        }
+                    )
+                    # Sync password from Student model if needed
+                    if created or not user.check_password(password):
+                        user.set_password(password)
+                        user.save()
                     
-                    # Check if logging in with the default password
-                    default_pw = f"{student.register_number}@{student.register_number}"
-                    if check_password(default_pw, student.password):
-                        request.session['must_change_password'] = True
-                        messages.warning(request, "Please change your default password to secure your account.")
-                        return redirect('student_change_password')
+                    # Link Student to User
+                    if student.user != user:
+                        student.user = user
+                        student.save()
+
+                    # Authenticate and login to Django auth
+                    user = authenticate(request, username=reg_num, password=password)
+                    if user is not None:
+                        login(request, user)
+                        
+                        # Maintain session variables for compatibility
+                        request.session['student_id'] = student.id
+                        request.session['student_name'] = student.name
+                        
+                        # Check if logging in with the default password
+                        default_pw = f"{student.register_number}@{student.register_number}"
+                        if check_password(default_pw, student.password):
+                            request.session['must_change_password'] = True
+                            messages.warning(request, "Please change your default password to secure your account.")
+                            return redirect('student_change_password')
+                        else:
+                            request.session['must_change_password'] = False
+                            messages.success(request, f"Welcome back, {student.name}!")
+                            return redirect('student_dashboard')
                     else:
-                        request.session['must_change_password'] = False
-                        messages.success(request, f"Welcome back, {student.name}!")
-                        return redirect('student_dashboard')
+                        messages.error(request, "Authentication failed.")
                 else:
                     messages.error(request, "Invalid registration number or password.")
             except Student.DoesNotExist:
@@ -148,7 +177,39 @@ def student_dashboard(request):
     if not student:
         return redirect('student_login')
 
-    return render(request, 'student_dashboard.html', {'student': student})
+    # Load settings for the teacher
+    teacher = User.objects.filter(username='teacher').first()
+    teacher_settings = None
+    if teacher:
+        teacher_settings, _ = TeacherSetting.objects.get_or_create(teacher=teacher)
+    else:
+        first_setting = TeacherSetting.objects.first()
+        if first_setting:
+            teacher_settings = first_setting
+        else:
+            default_teacher = User.objects.filter(is_superuser=True).first()
+            if default_teacher:
+                teacher_settings, _ = TeacherSetting.objects.get_or_create(teacher=default_teacher)
+            else:
+                teacher_settings = TeacherSetting()
+                
+    # Fetch Announcements
+    announcements = Announcement.objects.all().order_by('-created_at')
+    
+    # Query games created by this student
+    my_created_games = Game.objects.filter(created_by_student=student).order_by('-created_at')
+    
+    # Query active FIFA Quiz Battle sessions
+    fifa_sessions = FifaGameSession.objects.filter(status__in=['waiting', 'playing']).order_by('-created_at')
+    
+    context = {
+        'student': student,
+        'teacher_settings': teacher_settings,
+        'announcements': announcements,
+        'my_created_games': my_created_games,
+        'fifa_sessions': fifa_sessions,
+    }
+    return render(request, 'game_core/student_dashboard.html', context)
 
 
 @login_required
