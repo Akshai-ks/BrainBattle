@@ -208,14 +208,21 @@
         const textContainer = document.getElementById(`blank-question-text-${index}`);
         if (!textContainer) return;
 
-        // Replace double underscores with input
+        // Replace double or more underscores with input, with strict visual override
         const inputHtml = `<input type="text" id="blank-input-${index}" class="form-control inline-blank-input" 
-                           style="display: inline-block; width: 170px; border-bottom: 2px solid var(--accent-yellow); 
-                           border-top: none; border-left: none; border-right: none; border-radius: 0; background: transparent; 
-                           padding: 0 0.5rem; text-align: center; color: white; font-weight: 700; outline: none; font-size: 1.25rem;" 
+                           style="display: inline-block !important; width: 170px !important; border-bottom: 2px solid var(--accent-yellow) !important; 
+                           border-top: none !important; border-left: none !important; border-right: none !important; border-radius: 0px !important; background: transparent !important; 
+                           padding: 0 0.5rem !important; text-align: center !important; color: white !important; font-weight: 700 !important; outline: none !important; font-size: 1.25rem !important;
+                           box-shadow: none !important;" 
                            placeholder="Fill in blank" required autocomplete="off">`;
         
-        const finalHtml = text.replace(/__/g, inputHtml);
+        let finalHtml = text;
+        if (text.match(/_{2,}/)) {
+            finalHtml = text.replace(/_{2,}/g, inputHtml);
+        } else {
+            // Fallback: append the input box if no double underscores are present in the text
+            finalHtml = text + " " + inputHtml;
+        }
         textContainer.innerHTML = finalHtml;
 
         // Bind enter key press to check answer or advance
